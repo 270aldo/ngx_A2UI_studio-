@@ -1,0 +1,5 @@
+{
+  "name": "NGX Studio",
+  "description": "AI-powered interface builder generating React widgets via natural language using Gemini 2.5.",
+  "requestFramePermissions": []
+}
