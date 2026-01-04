@@ -1,12 +1,13 @@
-import React from 'react';
-import { 
+import React, { useState, useEffect } from 'react';
+import {
   Cpu, Zap, Droplets, UtensilsCrossed, Pill, Activity,
   Calendar, Sun, Calculator, User, AlertTriangle, Lightbulb,
-  Dumbbell, CheckCircle2
+  Dumbbell, CheckCircle2, Heart, Moon, Scale, Timer, Trophy,
+  History, Flame, TrendingUp, TrendingDown, Award
 } from 'lucide-react';
 import { COLORS } from '../constants';
 import { GlassCard, AgentBadge, ProgressBar, ActionButton } from './UIComponents';
-import { WidgetPayload } from '../types';
+import { WidgetPayload, WidgetLayout, isWidgetLayout, RenderPayload } from '../types';
 
 interface WidgetActionProps {
   data: any;
@@ -270,23 +271,304 @@ export const InsightCard: React.FC<WidgetActionProps> = ({ data }) => (
   </GlassCard>
 );
 
-export const A2UIMediator: React.FC<{ payload: WidgetPayload | null; onAction: (id: string, val: any) => void }> = ({ payload, onAction }) => {
-  if (!payload || !payload.type) return null;
+// --- NEW FITNESS WIDGETS ---
+
+// Heart Rate Card
+export const HeartRateCard: React.FC<WidgetActionProps> = ({ data }) => {
+  const getZoneColor = (zone: string) => {
+    const zones: Record<string, string> = {
+      rest: '#00FF88',
+      fat_burn: '#FFB800',
+      cardio: '#FF6347',
+      peak: '#FF4500',
+      recovery: '#00D4FF'
+    };
+    return zones[zone] || COLORS.blaze;
+  };
+
+  return (
+    <GlassCard borderColor={getZoneColor(data.zone)}>
+      <AgentBadge name="PULSE" color={getZoneColor(data.zone)} icon={Heart} />
+      <div className="flex justify-between items-end mb-3">
+        <div>
+          <p className="text-[10px] text-white/40 uppercase">Frecuencia Cardiaca</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-bold" style={{ color: getZoneColor(data.zone) }}>{data.bpm}</span>
+            <span className="text-xs text-white/40">bpm</span>
+          </div>
+        </div>
+        <div className="text-right">
+          <span className="text-[10px] px-2 py-1 rounded-full uppercase font-bold" style={{ background: `${getZoneColor(data.zone)}20`, color: getZoneColor(data.zone) }}>
+            {data.zone?.replace('_', ' ')}
+          </span>
+        </div>
+      </div>
+      {data.trend && (
+        <div className="flex items-center gap-2 text-[10px] text-white/40">
+          {data.trend === 'up' ? <TrendingUp size={12} className="text-red-400" /> : <TrendingDown size={12} className="text-green-400" />}
+          <span>{data.trend === 'up' ? 'Subiendo' : 'Bajando'}</span>
+        </div>
+      )}
+    </GlassCard>
+  );
+};
+
+// Sleep Tracker
+export const SleepTracker: React.FC<WidgetActionProps> = ({ data }) => {
+  const qualityColors: Record<string, string> = {
+    excellent: '#00FF88',
+    good: '#00D4FF',
+    fair: '#FFB800',
+    poor: '#FF4500'
+  };
+
+  return (
+    <GlassCard borderColor={COLORS.luna}>
+      <AgentBadge name="LUNA" color={COLORS.luna} icon={Moon} />
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <p className="text-[10px] text-white/40 uppercase">Sueno Anoche</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-3xl font-bold text-white">{data.hours}</span>
+            <span className="text-xs text-white/40">horas</span>
+          </div>
+        </div>
+        <span className="text-[10px] px-2 py-1 rounded-full font-bold" style={{ background: `${qualityColors[data.quality] || COLORS.luna}20`, color: qualityColors[data.quality] || COLORS.luna }}>
+          {data.quality}
+        </span>
+      </div>
+      {data.stages && (
+        <div className="space-y-2">
+          {data.stages.map((stage: any, i: number) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-16 text-[9px] text-white/40">{stage.name}</div>
+              <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${stage.percent}%`, background: stage.color || COLORS.luna }} />
+              </div>
+              <span className="text-[9px] text-white/40 w-8">{stage.percent}%</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </GlassCard>
+  );
+};
+
+// Body Stats
+export const BodyStats: React.FC<WidgetActionProps> = ({ data }) => (
+  <GlassCard borderColor={COLORS.atlas}>
+    <AgentBadge name="ATLAS" color={COLORS.atlas} icon={Scale} />
+    <h3 className="font-bold text-white mb-4">Composicion Corporal</h3>
+    <div className="grid grid-cols-2 gap-3">
+      <div className="bg-white/5 p-3 rounded-xl">
+        <p className="text-[9px] text-white/40 uppercase">Peso</p>
+        <p className="text-xl font-bold text-white">{data.weight}<span className="text-xs text-white/40 ml-1">kg</span></p>
+        {data.weightChange && (
+          <p className={`text-[9px] ${data.weightChange > 0 ? 'text-red-400' : 'text-green-400'}`}>
+            {data.weightChange > 0 ? '+' : ''}{data.weightChange}kg
+          </p>
+        )}
+      </div>
+      <div className="bg-white/5 p-3 rounded-xl">
+        <p className="text-[9px] text-white/40 uppercase">% Grasa</p>
+        <p className="text-xl font-bold text-[#EC4899]">{data.bodyFat}<span className="text-xs text-white/40 ml-1">%</span></p>
+      </div>
+      {data.muscle && (
+        <div className="bg-white/5 p-3 rounded-xl">
+          <p className="text-[9px] text-white/40 uppercase">Musculo</p>
+          <p className="text-xl font-bold text-[#00FF88]">{data.muscle}<span className="text-xs text-white/40 ml-1">kg</span></p>
+        </div>
+      )}
+      {data.measurements?.waist && (
+        <div className="bg-white/5 p-3 rounded-xl">
+          <p className="text-[9px] text-white/40 uppercase">Cintura</p>
+          <p className="text-xl font-bold text-white">{data.measurements.waist}<span className="text-xs text-white/40 ml-1">cm</span></p>
+        </div>
+      )}
+    </div>
+  </GlassCard>
+);
+
+// Rest Timer
+export const RestTimer: React.FC<WidgetActionProps> = ({ data, onAction }) => {
+  const [seconds, setSeconds] = useState(data.seconds || 60);
+  const [isRunning, setIsRunning] = useState(data.autoStart || false);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRunning && seconds > 0) {
+      interval = setInterval(() => setSeconds((s: number) => s - 1), 1000);
+    } else if (seconds === 0) {
+      onAction?.('TIMER_COMPLETE');
+      setIsRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, seconds, onAction]);
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const progress = ((data.seconds - seconds) / data.seconds) * 100;
+
+  return (
+    <GlassCard borderColor={COLORS.tempo}>
+      <AgentBadge name="TEMPO" color={COLORS.tempo} icon={Timer} />
+      <div className="text-center py-4">
+        <p className="text-[10px] text-white/40 uppercase mb-2">Descanso</p>
+        <p className="text-5xl font-bold text-white mb-4">{formatTime(seconds)}</p>
+        <ProgressBar value={progress} max={100} color={COLORS.tempo} height={4} />
+      </div>
+      <div className="flex gap-2 mt-4">
+        <ActionButton
+          variant="secondary"
+          onClick={() => { setSeconds(data.seconds); setIsRunning(false); }}
+        >
+          Reset
+        </ActionButton>
+        <ActionButton
+          color={COLORS.tempo}
+          onClick={() => setIsRunning(!isRunning)}
+        >
+          {isRunning ? 'Pausar' : 'Iniciar'}
+        </ActionButton>
+      </div>
+    </GlassCard>
+  );
+};
+
+// Achievement Badge
+export const AchievementBadge: React.FC<WidgetActionProps> = ({ data }) => (
+  <GlassCard borderColor={COLORS.spark}>
+    <div className="text-center py-2">
+      <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-[#FFB800] to-[#F59E0B] flex items-center justify-center shadow-lg">
+        <Trophy size={28} className="text-white" />
+      </div>
+      <h3 className="font-bold text-white text-lg mb-1">{data.title}</h3>
+      <p className="text-[10px] text-white/40">{data.description}</p>
+      {data.unlockedAt && (
+        <div className="mt-3 flex items-center justify-center gap-1 text-[9px] text-[#FFB800]">
+          <Award size={10} />
+          <span>Desbloqueado: {data.unlockedAt}</span>
+        </div>
+      )}
+    </div>
+  </GlassCard>
+);
+
+// Workout History
+export const WorkoutHistory: React.FC<WidgetActionProps> = ({ data }) => (
+  <GlassCard borderColor={COLORS.blaze}>
+    <AgentBadge name="BLAZE" color={COLORS.blaze} icon={History} />
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-white">Historial</h3>
+      {data.weekSummary && (
+        <span className="text-[10px] text-white/40">{data.weekSummary.total} entrenamientos</span>
+      )}
+    </div>
+    <div className="space-y-2">
+      {data.sessions?.slice(0, 5).map((session: any, i: number) => (
+        <div key={i} className="flex items-center gap-3 bg-white/5 p-2 rounded-lg">
+          <div className="w-10 h-10 rounded-lg bg-[#FF4500]/20 flex items-center justify-center">
+            <Dumbbell size={16} className="text-[#FF4500]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs text-white font-medium">{session.name}</p>
+            <p className="text-[9px] text-white/40">{session.date} - {session.duration}</p>
+          </div>
+          {session.completed && <CheckCircle2 size={14} className="text-[#00FF88]" />}
+        </div>
+      ))}
+    </div>
+  </GlassCard>
+);
+
+// Streak Counter
+export const StreakCounter: React.FC<WidgetActionProps> = ({ data }) => (
+  <GlassCard borderColor={COLORS.spark}>
+    <AgentBadge name="SPARK" color={COLORS.spark} icon={Flame} />
+    <div className="text-center py-2">
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <Flame size={32} className="text-[#FFB800]" />
+        <span className="text-5xl font-black text-white">{data.currentStreak}</span>
+      </div>
+      <p className="text-xs text-white/60 mb-4">dias consecutivos</p>
+      {data.bestStreak && (
+        <div className="bg-white/5 p-2 rounded-lg inline-flex items-center gap-2">
+          <Trophy size={12} className="text-[#FFB800]" />
+          <span className="text-[10px] text-white/60">Mejor racha: <span className="text-white font-bold">{data.bestStreak}</span> dias</span>
+        </div>
+      )}
+    </div>
+  </GlassCard>
+);
+
+// Layout Renderer for multiple widgets
+export const LayoutRenderer: React.FC<{ layout: WidgetLayout; onAction: (id: string, val: any) => void }> = ({ layout, onAction }) => {
+  const getLayoutClass = () => {
+    if (layout.type === 'grid') {
+      return `grid grid-cols-${layout.columns || 2} gap-${layout.gap || 3}`;
+    }
+    if (layout.type === 'stack') {
+      return layout.direction === 'horizontal'
+        ? `flex flex-row gap-${layout.gap || 3}`
+        : `flex flex-col gap-${layout.gap || 3}`;
+    }
+    return '';
+  };
+
+  return (
+    <div className={getLayoutClass()}>
+      {layout.widgets.map((widget, index) => (
+        <A2UIMediator key={index} payload={widget} onAction={onAction} />
+      ))}
+    </div>
+  );
+};
+
+export const A2UIMediator: React.FC<{ payload: RenderPayload | null; onAction: (id: string, val: any) => void }> = ({ payload, onAction }) => {
+  if (!payload) return null;
+
+  // Handle layouts
+  if (isWidgetLayout(payload)) {
+    return <LayoutRenderer layout={payload} onAction={onAction} />;
+  }
+
+  // Handle single widget
+  if (!payload.type) return null;
+
   const widgetMap: { [key: string]: React.FC<WidgetActionProps> } = {
+    // Dashboard
     'progress-dashboard': ProgressDashboard,
     'metric-card': MetricCard,
+    // Training
     'workout-card': WorkoutCard,
     'exercise-row': ExerciseRow,
+    // Nutrition
     'meal-plan': MealPlan,
+    // Habits
     'hydration-tracker': HydrationTracker,
     'supplement-stack': SupplementStack,
+    // Planning
     'season-timeline': SeasonTimeline,
     'today-card': TodayCard,
+    // Tools
     'max-rep-calculator': MaxRepCalculator,
     'alert-banner': AlertBanner,
     'coach-message': CoachMessage,
-    'insight-card': InsightCard
+    'insight-card': InsightCard,
+    // NEW FITNESS WIDGETS
+    'heart-rate': HeartRateCard,
+    'sleep-tracker': SleepTracker,
+    'body-stats': BodyStats,
+    'rest-timer': RestTimer,
+    'achievement': AchievementBadge,
+    'workout-history': WorkoutHistory,
+    'streak-counter': StreakCounter
   };
+
   const Widget = widgetMap[payload.type];
   return Widget ? <Widget data={payload.props} onAction={onAction} /> : <div className="text-red-500 text-xs">Widget {payload.type} no encontrado</div>;
 };

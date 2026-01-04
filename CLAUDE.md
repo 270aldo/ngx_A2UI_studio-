@@ -2,9 +2,17 @@
 
 ## Project Overview
 
-NGX Studio is an AI-powered interface builder that generates React widgets via natural language using Google's Gemini 2.5 Flash API. The application provides a visual studio environment where users can describe widgets in natural language (Spanish) and see live previews of the generated components.
+NGX Studio is an AI-powered interface builder that generates React widgets via natural language using Google's Gemini 3.0 Flash/Pro API. The application provides a visual studio environment where users can describe widgets in natural language (Spanish) and see live previews of the generated components.
 
-**Primary use case:** Creating fitness and health tracking UI widgets (workout cards, meal plans, hydration trackers, etc.)
+**Primary use case:** Creating fitness and health tracking UI widgets for the GENESIS app ecosystem (workout cards, meal plans, biometrics, habits, etc.)
+
+**Key Features:**
+- Natural language to UI generation with Gemini 3.0
+- 20 fitness-focused widget types
+- Widget composition with layouts (stack, grid)
+- Export to JSON, React component, or HTML
+- Local storage persistence for widget history
+- Live preview in phone frame mockup
 
 ## Tech Stack
 
@@ -12,27 +20,32 @@ NGX Studio is an AI-powered interface builder that generates React widgets via n
 - **Build Tool:** Vite 6
 - **Styling:** Tailwind CSS (via CDN)
 - **Icons:** lucide-react
-- **AI Integration:** Google Gemini 2.5 Flash (`@google/genai`)
+- **AI Integration:** Google Gemini 3.0 Flash/Pro (`@google/genai`)
 - **Module System:** ES Modules with import maps
+- **Storage:** localStorage for widget history
 
 ## Project Structure
 
 ```
-ngx_A2UI_studio-/
+ngx_A2UI_studio/
 ├── App.tsx                    # Main application component with chat UI
 ├── index.tsx                  # React entry point
 ├── index.html                 # HTML template with Tailwind CDN & import maps
-├── types.ts                   # TypeScript type definitions
-├── constants.ts               # Colors, system prompt, template library
+├── types.ts                   # TypeScript type definitions (widgets, layouts)
+├── constants.ts               # Colors, system prompt (20 widgets), template library
 ├── vite.config.ts             # Vite configuration
 ├── tsconfig.json              # TypeScript configuration
 ├── package.json               # Dependencies and scripts
 ├── metadata.json              # App metadata for AI Studio
 ├── components/
-│   ├── WidgetRenderer.tsx     # Widget components and A2UIMediator
+│   ├── WidgetRenderer.tsx     # 20 widget components, LayoutRenderer, A2UIMediator
 │   └── UIComponents.tsx       # Shared UI primitives (GlassCard, etc.)
-└── services/
-    └── geminiService.ts       # Gemini API integration service
+├── services/
+│   ├── geminiService.ts       # Gemini 3.0 Flash/Pro API integration
+│   ├── exportService.ts       # Export widgets (JSON, React, HTML)
+│   └── storageService.ts      # localStorage persistence
+└── utils/
+    └── validation.ts          # JSON schema validation for widgets/layouts
 ```
 
 ## Key Commands
@@ -67,54 +80,147 @@ The API key is loaded via Vite's `loadEnv` and exposed as `process.env.API_KEY`.
 The application uses a mediator pattern for rendering widgets dynamically:
 
 1. **WidgetPayload** - JSON structure with `type`, `props`, and optional `thought`
-2. **A2UIMediator** (`components/WidgetRenderer.tsx:273`) - Maps widget type strings to React components
-3. **Widget Components** - Individual components like `WorkoutCard`, `MealPlan`, `HydrationTracker`
+2. **WidgetLayout** - Composition structure with `type`, `widgets[]`, `direction`, `gap`
+3. **A2UIMediator** (`components/WidgetRenderer.tsx`) - Maps widget type strings to React components
+4. **LayoutRenderer** - Renders widget compositions (stack, grid)
 
-### Available Widget Types
+### Available Widget Types (20 total)
 
+#### Dashboard (4)
+| Type | Description | Key Props |
+|------|-------------|-----------|
+| `progress-dashboard` | Metrics overview | `title`, `subtitle`, `progress`, `metrics[]` |
+| `metric-card` | Single metric display | `label`, `value`, `unit`, `trend`, `change` |
+| `today-card` | Daily summary | `greeting`, `date`, `mainSession`, `todos[]` |
+| `insight-card` | AI insight display | `message` |
+
+#### Training (4)
 | Type | Description | Key Props |
 |------|-------------|-----------|
 | `workout-card` | Exercise routine display | `title`, `category`, `duration`, `exercises[]`, `coachNote` |
+| `exercise-row` | Single exercise display | `name`, `currentSet`, `totalSets`, `load`, `reps` |
+| `rest-timer` | Countdown timer | `seconds`, `autoStart` |
+| `workout-history` | Session history | `sessions[]`, `weekSummary` |
+
+#### Nutrition (1)
+| Type | Description | Key Props |
+|------|-------------|-----------|
 | `meal-plan` | Nutrition schedule | `totalKcal`, `meals[]` |
+
+#### Habits (3)
+| Type | Description | Key Props |
+|------|-------------|-----------|
 | `hydration-tracker` | Water intake tracker | `current`, `goal` |
-| `progress-dashboard` | Metrics overview | `title`, `progress`, `metrics[]` |
-| `today-card` | Daily summary | `greeting`, `date`, `mainSession` |
 | `supplement-stack` | Supplement checklist | `items[]` |
+| `streak-counter` | Streak display | `currentStreak`, `bestStreak` |
+
+#### Biometrics (3)
+| Type | Description | Key Props |
+|------|-------------|-----------|
+| `heart-rate` | Heart rate monitor | `bpm`, `zone`, `trend` |
+| `sleep-tracker` | Sleep analysis | `hours`, `quality`, `stages[]` |
+| `body-stats` | Body composition | `weight`, `bodyFat`, `muscle`, `measurements` |
+
+#### Planning (1)
+| Type | Description | Key Props |
+|------|-------------|-----------|
+| `season-timeline` | Training phases | `seasonName`, `weeksCompleted`, `totalWeeks`, `phases[]` |
+
+#### Tools (4)
+| Type | Description | Key Props |
+|------|-------------|-----------|
 | `max-rep-calculator` | 1RM calculator | `weight`, `reps` |
 | `alert-banner` | Notification banner | `type`, `message` |
 | `coach-message` | Coach communication | `coachName`, `timestamp`, `message` |
-| `exercise-row` | Single exercise display | `name`, `currentSet`, `totalSets`, `load`, `reps` |
-| `metric-card` | Single metric display | `label`, `value`, `unit`, `trend` |
-| `season-timeline` | Training phase timeline | `seasonName`, `phases[]` |
-| `insight-card` | AI insight display | `message` |
+| `achievement` | Achievement badge | `title`, `description`, `unlockedAt` |
 
-### Shared UI Components
+### Layout System
+
+Widgets can be composed using layouts:
+
+```typescript
+interface WidgetLayout {
+  type: 'stack' | 'grid' | 'single';
+  direction?: 'vertical' | 'horizontal';
+  gap?: number;
+  columns?: number;
+  widgets: WidgetPayload[];
+}
+```
+
+### Gemini 3.0 Integration
+
+The `GeminiService` (`services/geminiService.ts`) supports dual models:
+
+| Model | Use Case | Config |
+|-------|----------|--------|
+| `gemini-3-flash-preview` | Fast iteration | `thinkingLevel: "low"` |
+| `gemini-3-pro-preview` | High quality | `thinkingLevel: "medium"` |
+
+**Features:**
+- Thinking configuration for complex layouts
+- JSON response mode (`responseMimeType: "application/json"`)
+- Fallback to mock responses when no API key
+
+### Export System
+
+The `ExportService` (`services/exportService.ts`) provides:
+
+1. **JSON Export** - Enriched format with metadata for GENESIS:
+```json
+{
+  "version": "1.0",
+  "widget": { "type": "...", "props": {...} },
+  "metadata": {
+    "id": "uuid",
+    "createdAt": "ISO-8601",
+    "generatedBy": "NGX Studio",
+    "model": "gemini-3-flash"
+  },
+  "styles": {
+    "colorScheme": "dark",
+    "primaryColor": "#6D00FF"
+  }
+}
+```
+
+2. **React Component** - Standalone TypeScript component
+3. **HTML Embed** - Complete widget with inline styles
+
+### Storage System
+
+The `StorageService` (`services/storageService.ts`) provides:
+- Save/load widget history to localStorage
+- Maximum 50 saved widgets
+- Search by name
+- Stats (total widgets, by type)
+
+### Validation
+
+The `validation.ts` utility validates:
+- Widget structure (type, props)
+- Layout structure (type, widgets array)
+- JSON syntax
+- Returns errors and warnings
+
+## Shared UI Components
 
 Located in `components/UIComponents.tsx`:
 - **GlassCard** - Glassmorphism card container with border glow
-- **AgentBadge** - Widget attribution badge (e.g., "Generated by BLAZE")
+- **AgentBadge** - Widget attribution badge (e.g., "Generated by PULSE")
 - **ProgressBar** - Animated progress indicator
 - **ActionButton** - Primary/secondary action buttons
 
-### Color System
+## Color System
 
-Defined in `constants.ts` - uses a consistent color palette with semantic names:
+Defined in `constants.ts` - uses a consistent color palette:
 - `nexus` (#6D00FF) - Primary purple
 - `blaze` (#FF4500) - Training/workout orange
 - `aqua` (#00D4FF) - Hydration blue
 - `macro` (#FF6347) - Nutrition red
-- Plus many more for different widget contexts
-
-## Gemini API Integration
-
-The `GeminiService` (`services/geminiService.ts`) handles AI generation:
-
-1. Receives natural language prompt
-2. Sends to Gemini 2.5 Flash with system prompt from `constants.ts`
-3. Returns JSON widget configuration with `responseMimeType: "application/json"`
-4. Falls back to mock response if no API key is configured
-
-**System Prompt:** Located in `constants.ts:24-49`, defines available widget types and generation rules in Spanish.
+- `sage` (#10B981) - Health green
+- `tempo` (#8B5CF6) - Timer purple
+- Plus many more for different contexts
 
 ## Development Conventions
 
@@ -122,32 +228,38 @@ The `GeminiService` (`services/geminiService.ts`) handles AI generation:
 - TypeScript with explicit type annotations
 - Functional React components with hooks
 - Spanish UI text (prompts, labels, system messages)
-- Tailwind utility classes for styling (not CSS modules)
+- Tailwind utility classes for styling
 
 ### Component Patterns
-- Props interfaces defined inline or in `types.ts`
+- Props interfaces in `types.ts` or inline
 - Widget components receive `data` and optional `onAction` callback
-- Use `GlassCard` wrapper for consistent widget styling
-- Use `AgentBadge` to show which "agent" generated the widget
+- Use `GlassCard` wrapper for consistent styling
+- Use `AgentBadge` to show generation source
 
 ### State Management
 - Local React state with `useState` hooks
 - No external state management library
-- JSON editor state synced with preview
+- JSON editor synced with preview
 
 ### Adding New Widgets
 
 1. Add type definition to `SYSTEM_PROMPT` in `constants.ts`
-2. Create component in `components/WidgetRenderer.tsx`
-3. Register in `widgetMap` object in `A2UIMediator`
-4. Optionally add template in `TEMPLATE_LIBRARY`
+2. Add to `VALID_WIDGET_TYPES` in `utils/validation.ts`
+3. Create component in `components/WidgetRenderer.tsx`
+4. Register in `widgetMap` object in `A2UIMediator`
+5. Optionally add template in `TEMPLATE_LIBRARY`
 
 ## UI Layout
 
 The app has a three-panel layout:
-1. **Sidebar (left)** - Spaces navigation and template library
-2. **Chat + Editor (center-left)** - Chat history, input, and JSON editor
-3. **Preview (right)** - Live phone frame preview of widgets
+1. **Sidebar (left)** - Template library, saved widgets history
+2. **Chat + Editor (center-left)** - Chat history, input, JSON editor
+3. **Preview (right)** - Live phone frame preview
+
+**Header features:**
+- Model selector (Flash/Pro toggle)
+- Save widget button
+- Export dropdown (JSON, React, HTML)
 
 ## Path Aliases
 
@@ -162,6 +274,19 @@ Configured in both `tsconfig.json` and `vite.config.ts`:
 2. **No tests:** Project has no test setup - be careful with changes
 3. **CDN dependencies:** Tailwind CSS is loaded via CDN, not npm
 4. **Import maps:** Browser dependencies use ES modules import map in `index.html`
-5. **Mock mode:** App works offline with mock responses when no API key is set
+5. **Mock mode:** App works offline with mock responses when no API key
 6. **Widget JSON:** Always validate JSON structure before rendering
 7. **Type safety:** All widget props should match expected interfaces
+8. **Layouts:** Support for widget composition with stack/grid layouts
+9. **Export:** Three export formats available for GENESIS integration
+10. **Persistence:** Widget history saved to localStorage (max 50)
+
+## Recent Updates (January 2025)
+
+- Upgraded from Gemini 2.5 to Gemini 3.0 Flash/Pro
+- Added 7 new widgets (heart-rate, sleep-tracker, body-stats, rest-timer, achievement, workout-history, streak-counter)
+- Implemented widget composition with LayoutRenderer
+- Added export system (JSON, React, HTML)
+- Added localStorage persistence
+- Added validation utilities
+- Updated system prompt with 20 widget types
