@@ -43,41 +43,73 @@ Para MULTIPLES WIDGETS, usa un layout:
   "widgets": [ { widget1 }, { widget2 } ]
 }
 
-CATALOGO DE WIDGETS DISPONIBLES (20 tipos):
+CATALOGO COMPLETO DE WIDGETS (42 tipos):
 
---- DASHBOARD ---
+=== DASHBOARD (GENESIS) ===
 1. 'progress-dashboard': { title, subtitle, progress, metrics: [{label, value, trend: 'up'|'down'}] }
 2. 'metric-card': { label, value, unit, trend, change }
 3. 'today-card': { greeting, date, mainSession: {title, time, type}, todos: [{label, done}] }
 4. 'insight-card': { message }
 
---- ENTRENAMIENTO ---
+=== ENTRENAMIENTO (BLAZE) ===
 5. 'workout-card': { title, category, duration, workoutId, exercises: [{name, sets, reps, load}], coachNote }
 6. 'exercise-row': { name, currentSet, totalSets, load, reps }
 7. 'rest-timer': { seconds, autoStart: boolean }
 8. 'workout-history': { sessions: [{name, date, duration, completed}], weekSummary: {total} }
+9. 'live-session': { exerciseName, currentSet, totalSets, reps, load, timer, restMode: boolean }
 
---- NUTRICION ---
-9. 'meal-plan': { totalKcal, meals: [{time, name, kcal, highlight: boolean}] }
+=== NUTRICION (SAGE) ===
+10. 'meal-plan': { totalKcal, meals: [{time, name, kcal, highlight: boolean}] }
+11. 'nutrition-strategy': { goal: 'bulk'|'cut'|'maintain', targetKcal, macroSplit: {protein, carbs, fat}, tips: string[] }
+12. 'calorie-balance': { consumed, burned, target, net }
+13. 'meal-swap': { original: {name, kcal}, alternative: {name, kcal, benefit} }
 
---- HABITOS ---
-10. 'hydration-tracker': { current, goal }
-11. 'supplement-stack': { items: [{name, dose, timing, taken: boolean}] }
-12. 'streak-counter': { currentStreak, bestStreak }
+=== MACROS (MACRO) ===
+14. 'macro-dial': { protein: {current, goal}, carbs: {current, goal}, fat: {current, goal} }
 
---- BIOMETRICOS ---
-13. 'heart-rate': { bpm, zone: 'rest'|'fat_burn'|'cardio'|'peak', trend: 'up'|'down' }
-14. 'sleep-tracker': { hours, quality: 'excellent'|'good'|'fair'|'poor', stages: [{name, percent, color}] }
-15. 'body-stats': { weight, bodyFat, muscle, weightChange, measurements: {waist, chest, arms} }
+=== HABITOS (SPARK/WAVE) ===
+15. 'hydration-tracker': { current, goal }
+16. 'supplement-stack': { items: [{name, dose, timing, taken: boolean}] }
+17. 'streak-counter': { currentStreak, bestStreak }
+18. 'habit-streak': { habits: [{name, icon, streak, completed: boolean}] }
 
---- PLANIFICACION ---
-16. 'season-timeline': { seasonName, weeksCompleted, totalWeeks, phases: [{name, active}] }
+=== BIOMETRICOS (ATLAS/WAVE/LUNA) ===
+19. 'heart-rate': { bpm, zone: 'rest'|'fat_burn'|'cardio'|'peak', trend: 'up'|'down' }
+20. 'sleep-tracker': { hours, quality: 'excellent'|'good'|'fair'|'poor', stages: [{name, percent, color}] }
+21. 'body-stats': { weight, bodyFat, muscle, weightChange, measurements: {waist, chest, arms} }
+22. 'pain-map': { areas: [{name, severity: 1-5, notes}], lastUpdated }
 
---- HERRAMIENTAS ---
-17. 'max-rep-calculator': { weight, reps }
-18. 'alert-banner': { type: 'warning'|'error'|'success', message }
-19. 'coach-message': { coachName, timestamp, message }
-20. 'achievement': { title, description, unlockedAt }
+=== METABOLISMO (METABOL) ===
+23. 'glucose-tracker': { current, min, max, trend: 'stable'|'rising'|'falling', lastMeal }
+24. 'metabolic-score': { score, factors: [{name, value, status: 'good'|'warning'|'low'}] }
+25. 'energy-curve': { hours: [{hour, level: 1-10}], peakHour, lowHour }
+
+=== PLANIFICACION (TEMPO/GENESIS) ===
+26. 'season-timeline': { seasonName, weeksCompleted, totalWeeks, phases: [{name, active}] }
+27. 'season-contract': { seasonName, startDate, endDate, goals: string[], signature: boolean }
+28. 'readiness-battery': { overall, hrv, sleep, soreness, energy, recommendation }
+
+=== RESUMEN Y RECAPS ===
+29. 'daily-recap': { date, workoutCompleted: boolean, nutrition: {kcal, protein}, habits: [{name, done}], insight }
+30. 'weekly-review': { weekNumber, stats: {workouts, avgKcal, streakDays}, wins: string[], improvements: string[] }
+31. 'season-recap': { seasonName, duration, achievements: string[], stats: {totalWorkouts, avgWeight}, nextSteps: string[] }
+
+=== EDUCACION (LOGOS) ===
+32. 'explanation-card': { term, definition, example, category }
+33. 'myth-buster': { myth, reality, source }
+34. 'learn-more': { topic, summary, benefits: string[], actionButton }
+35. 'source-card': { title, authors, year, journal, keyFinding, url }
+
+=== HERRAMIENTAS ===
+36. 'max-rep-calculator': { weight, reps }
+37. 'alert-banner': { type: 'warning'|'error'|'success', message }
+38. 'coach-message': { coachName, timestamp, message }
+39. 'achievement': { title, description, unlockedAt }
+40. 'before-after': { metric, before: {value, date}, after: {value, date}, percentChange }
+41. 'trophy-case': { trophies: [{name, icon, unlockedAt, rarity: 'common'|'rare'|'epic'|'legendary'}] }
+
+=== RECOVERY (LUNA) ===
+42. 'wind-down': { bedtimeGoal, currentTime, activities: [{name, duration, completed}], sleepScore }
 
 REGLAS:
 - Se creativo con los datos. Si piden "Rutina Brutal", pon ejercicios dificiles y notas motivadoras intensas.
@@ -86,6 +118,8 @@ REGLAS:
 - Si piden multiples widgets o un "dashboard", usa el formato layout con type: "stack".
 - NO devuelvas bloques de codigo markdown, solo el JSON crudo.
 - Genera datos realistas y motivadores para fitness.
+- Para dashboards completos, combina widgets relevantes usando layouts stack.
+- Elige el agente correcto segun el contexto: BLAZE para entrenamiento, SAGE para nutricion, METABOL para metabolismo, etc.
 `;
 
 export const TEMPLATE_LIBRARY: TemplateCategory = {
@@ -93,28 +127,63 @@ export const TEMPLATE_LIBRARY: TemplateCategory = {
     { name: "Rutina Fuerza", type: "workout-card", props: { title: "Upper Power", category: "Fuerza", duration: "60m", exercises: [{ name: "Press Banca", sets: 4, reps: "6", load: "80kg" }, { name: "Remo con Barra", sets: 4, reps: "8", load: "60kg" }], coachNote: "Enfocate en la tecnica, no en el peso" } },
     { name: "Live Exercise", type: "exercise-row", props: { name: "Sentadilla", currentSet: 1, totalSets: 4, load: "100kg", reps: "8" } },
     { name: "Timer Descanso", type: "rest-timer", props: { seconds: 90, autoStart: false } },
-    { name: "Historial", type: "workout-history", props: { sessions: [{ name: "Push Day", date: "Hoy", duration: "55m", completed: true }, { name: "Pull Day", date: "Ayer", duration: "48m", completed: true }], weekSummary: { total: 5 } } }
+    { name: "Historial", type: "workout-history", props: { sessions: [{ name: "Push Day", date: "Hoy", duration: "55m", completed: true }, { name: "Pull Day", date: "Ayer", duration: "48m", completed: true }], weekSummary: { total: 5 } } },
+    { name: "Sesion en Vivo", type: "live-session", props: { exerciseName: "Peso Muerto", currentSet: 2, totalSets: 4, reps: "5", load: "120kg", timer: 45, restMode: false } }
   ],
   "Nutricion": [
-    { name: "Plan Diario", type: "meal-plan", props: { totalKcal: 2500, meals: [{ time: "08:00", name: "Avena con frutas", kcal: 450 }, { time: "12:00", name: "Pollo con arroz", kcal: 650, highlight: true }, { time: "16:00", name: "Snack proteico", kcal: 300 }, { time: "20:00", name: "Salmon con verduras", kcal: 550 }] } }
+    { name: "Plan Diario", type: "meal-plan", props: { totalKcal: 2500, meals: [{ time: "08:00", name: "Avena con frutas", kcal: 450 }, { time: "12:00", name: "Pollo con arroz", kcal: 650, highlight: true }, { time: "16:00", name: "Snack proteico", kcal: 300 }, { time: "20:00", name: "Salmon con verduras", kcal: 550 }] } },
+    { name: "Estrategia Bulk", type: "nutrition-strategy", props: { goal: "bulk", targetKcal: 3200, macroSplit: { protein: 30, carbs: 45, fat: 25 }, tips: ["Comer cada 3 horas", "Priorizar proteina post-entreno", "No saltear carbos complejos"] } },
+    { name: "Balance Calorico", type: "calorie-balance", props: { consumed: 2100, burned: 450, target: 2500, net: 1650 } },
+    { name: "Swap Saludable", type: "meal-swap", props: { original: { name: "Pizza comercial", kcal: 850 }, alternative: { name: "Pizza casera integral", kcal: 520, benefit: "Menos grasa saturada, mas fibra" } } }
+  ],
+  "Macros": [
+    { name: "Dial de Macros", type: "macro-dial", props: { protein: { current: 120, goal: 150 }, carbs: { current: 180, goal: 200 }, fat: { current: 45, goal: 60 } } }
   ],
   "Dashboard": [
     { name: "Resumen Semanal", type: "progress-dashboard", props: { title: "Estado Actual", subtitle: "Semana 8 de 12", progress: 65, metrics: [{ label: "Peso", value: "80kg", trend: "down" }, { label: "Grasa", value: "15%", trend: "down" }] } },
     { name: "Today View", type: "today-card", props: { greeting: "Hola Aldo", date: "Lun 12", mainSession: { title: "Legs Day", type: "strength", time: "18:00" }, todos: [{ label: "Tomar creatina", done: true }, { label: "Preparar pre-workout", done: false }] } },
-    { name: "Racha Activa", type: "streak-counter", props: { currentStreak: 15, bestStreak: 21 } }
+    { name: "Racha Activa", type: "streak-counter", props: { currentStreak: 15, bestStreak: 21 } },
+    { name: "Bateria Readiness", type: "readiness-battery", props: { overall: 85, hrv: 78, sleep: 90, soreness: 75, energy: 88, recommendation: "Dia optimo para entrenamiento intenso" } }
   ],
   "Biometricos": [
     { name: "Ritmo Cardiaco", type: "heart-rate", props: { bpm: 72, zone: "rest", trend: "down" } },
     { name: "Sueno Anoche", type: "sleep-tracker", props: { hours: 7.5, quality: "good", stages: [{ name: "Profundo", percent: 25, color: "#6366F1" }, { name: "Ligero", percent: 50, color: "#A855F7" }, { name: "REM", percent: 25, color: "#00D4FF" }] } },
-    { name: "Composicion", type: "body-stats", props: { weight: 80, bodyFat: 15, muscle: 38, weightChange: -0.5, measurements: { waist: 82, chest: 102 } } }
+    { name: "Composicion", type: "body-stats", props: { weight: 80, bodyFat: 15, muscle: 38, weightChange: -0.5, measurements: { waist: 82, chest: 102 } } },
+    { name: "Mapa de Dolor", type: "pain-map", props: { areas: [{ name: "Hombro derecho", severity: 3, notes: "Leve tension" }, { name: "Espalda baja", severity: 2, notes: "Post-deadlift" }], lastUpdated: "Hoy 8:00" } }
+  ],
+  "Metabolismo": [
+    { name: "Glucosa", type: "glucose-tracker", props: { current: 95, min: 72, max: 140, trend: "stable", lastMeal: "Hace 2h" } },
+    { name: "Score Metabolico", type: "metabolic-score", props: { score: 82, factors: [{ name: "Sensibilidad Insulina", value: 85, status: "good" }, { name: "Termogenesis", value: 70, status: "warning" }, { name: "Flexibilidad Metabolica", value: 78, status: "good" }] } },
+    { name: "Curva Energia", type: "energy-curve", props: { hours: [{ hour: "6am", level: 5 }, { hour: "9am", level: 8 }, { hour: "12pm", level: 7 }, { hour: "3pm", level: 4 }, { hour: "6pm", level: 8 }, { hour: "9pm", level: 6 }], peakHour: "9am", lowHour: "3pm" } }
+  ],
+  "Planificacion": [
+    { name: "Timeline Temporada", type: "season-timeline", props: { seasonName: "Volumen Otoño", weeksCompleted: 8, totalWeeks: 12, phases: [{ name: "Adaptacion", active: false }, { name: "Acumulacion", active: true }, { name: "Intensificacion", active: false }, { name: "Deload", active: false }] } },
+    { name: "Contrato de Season", type: "season-contract", props: { seasonName: "Definicion Verano 2025", startDate: "15 Ene", endDate: "15 Abr", goals: ["Bajar a 12% grasa corporal", "Mantener 1RM en lifts principales", "Cardio 3x/semana"], signature: false } }
+  ],
+  "Recaps": [
+    { name: "Recap Diario", type: "daily-recap", props: { date: "Hoy", workoutCompleted: true, nutrition: { kcal: 2450, protein: 165 }, habits: [{ name: "Agua", done: true }, { name: "Suplementos", done: true }, { name: "Sueno 7h+", done: false }], insight: "Buen dia de entrenamiento, mejora el sueno para optimizar recuperacion" } },
+    { name: "Review Semanal", type: "weekly-review", props: { weekNumber: 8, stats: { workouts: 5, avgKcal: 2380, streakDays: 12 }, wins: ["PR en sentadilla: 140kg", "5 dias de entrenamiento consecutivos"], improvements: ["Mejorar consistencia de sueno", "Aumentar ingesta de vegetales"] } },
+    { name: "Recap de Season", type: "season-recap", props: { seasonName: "Volumen Otoño", duration: "12 semanas", achievements: ["Ganaste 3kg masa magra", "Nuevo PR Bench: 100kg", "Streak de 45 dias"], stats: { totalWorkouts: 48, avgWeight: 82 }, nextSteps: ["Fase de definicion", "Mantener fuerza", "Ajustar calorias a deficit"] } }
   ],
   "Habitos": [
     { name: "Agua", type: "hydration-tracker", props: { current: 1500, goal: 3000 } },
-    { name: "Suplementos", type: "supplement-stack", props: { items: [{ name: "Creatina", dose: "5g", timing: "Pre-work", taken: false }, { name: "Omega 3", dose: "2 caps", timing: "Con comida", taken: true }, { name: "Vitamina D", dose: "2000 IU", timing: "Manana", taken: true }] } }
+    { name: "Suplementos", type: "supplement-stack", props: { items: [{ name: "Creatina", dose: "5g", timing: "Pre-work", taken: false }, { name: "Omega 3", dose: "2 caps", timing: "Con comida", taken: true }, { name: "Vitamina D", dose: "2000 IU", timing: "Manana", taken: true }] } },
+    { name: "Mis Rachas", type: "habit-streak", props: { habits: [{ name: "Gym", icon: "dumbbell", streak: 15, completed: true }, { name: "Agua 3L", icon: "droplet", streak: 8, completed: false }, { name: "Sueno 7h", icon: "moon", streak: 3, completed: true }] } }
+  ],
+  "Educacion": [
+    { name: "Explicacion RPE", type: "explanation-card", props: { term: "RPE (Rate of Perceived Exertion)", definition: "Escala del 1-10 que mide que tan dificil sientes un ejercicio. RPE 10 = maximo esfuerzo posible.", example: "Si puedes hacer 2 reps mas, estas en RPE 8", category: "Entrenamiento" } },
+    { name: "Mito Proteina", type: "myth-buster", props: { myth: "Necesitas consumir proteina inmediatamente despues de entrenar", reality: "La 'ventana anabolica' es de 4-6 horas. Lo importante es el consumo diario total, no el timing exacto.", source: "Schoenfeld et al. 2013" } },
+    { name: "Aprende: Creatina", type: "learn-more", props: { topic: "Creatina Monohidrato", summary: "El suplemento mas estudiado y efectivo para mejorar fuerza y masa muscular.", benefits: ["Aumenta ATP disponible", "Mejora rendimiento en series cortas", "Ayuda a recuperacion"], actionButton: "Ver guia completa" } },
+    { name: "Estudio", type: "source-card", props: { title: "Effects of creatine supplementation on performance and training adaptations", authors: "Kreider et al.", year: "2017", journal: "Mol Cell Biochem", keyFinding: "5g/dia de creatina mejora fuerza y potencia en un 10-20%", url: "pubmed.gov/12345" } }
   ],
   "Tools": [
     { name: "Calculadora RM", type: "max-rep-calculator", props: { weight: 100, reps: 5 } },
     { name: "Mensaje Coach", type: "coach-message", props: { coachName: "Alex", timestamp: "10m", message: "Excelente progreso esta semana. Sube el peso en sentadilla." } },
-    { name: "Logro", type: "achievement", props: { title: "Iron Will", description: "Completaste 30 dias consecutivos de entrenamiento", unlockedAt: "Hace 2 dias" } }
+    { name: "Logro", type: "achievement", props: { title: "Iron Will", description: "Completaste 30 dias consecutivos de entrenamiento", unlockedAt: "Hace 2 dias" } },
+    { name: "Antes/Despues", type: "before-after", props: { metric: "Peso Corporal", before: { value: "85kg", date: "1 Ene" }, after: { value: "80kg", date: "1 Abr" }, percentChange: -5.9 } },
+    { name: "Mis Trofeos", type: "trophy-case", props: { trophies: [{ name: "First Blood", icon: "trophy", unlockedAt: "Ene 2025", rarity: "common" }, { name: "Century Club", icon: "medal", unlockedAt: "Mar 2025", rarity: "rare" }, { name: "Iron Mind", icon: "star", unlockedAt: "Abr 2025", rarity: "epic" }] } }
+  ],
+  "Recovery": [
+    { name: "Rutina Wind Down", type: "wind-down", props: { bedtimeGoal: "22:30", currentTime: "21:45", activities: [{ name: "Apagar pantallas", duration: "30 min antes", completed: true }, { name: "Stretching suave", duration: "10 min", completed: false }, { name: "Respiracion 4-7-8", duration: "5 min", completed: false }], sleepScore: 72 } }
   ]
 };
