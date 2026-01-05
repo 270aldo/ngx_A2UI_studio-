@@ -30,12 +30,15 @@ export const ExportService = {
    * Exportar widget como JSON enriquecido para GENESIS
    */
   exportJSON: (payload: WidgetPayload, model: string = 'gemini-3-flash'): ExportedWidget => {
+    // Para layouts (stack, grid), incluir todas las propiedades del root
+    const isLayout = payload.type === 'stack' || payload.type === 'grid';
+    const widgetContent = isLayout
+      ? { ...payload } // Incluir todo el objeto para layouts
+      : { type: payload.type, props: payload.props }; // Solo type y props para widgets simples
+
     return {
       version: "1.0",
-      widget: {
-        type: payload.type,
-        props: payload.props
-      },
+      widget: widgetContent as { type: string; props: Record<string, any> },
       metadata: {
         id: generateId(),
         createdAt: new Date().toISOString(),
@@ -44,7 +47,7 @@ export const ExportService = {
       },
       styles: {
         colorScheme: 'dark',
-        primaryColor: COLORS.nexus
+        primaryColor: COLORS.genesis
       }
     };
   },
