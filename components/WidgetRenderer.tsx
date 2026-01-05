@@ -16,8 +16,8 @@ interface WidgetActionProps {
 
 // --- DASHBOARD ---
 export const ProgressDashboard: React.FC<WidgetActionProps> = ({ data }) => (
-  <GlassCard borderColor={COLORS.nexus}>
-    <AgentBadge name="NEXUS" color={COLORS.nexus} icon={Cpu} />
+  <GlassCard borderColor={COLORS.genesis}>
+    <AgentBadge name="GENESIS" color={COLORS.genesis} icon={Cpu} />
     <div className="flex justify-between items-start mb-4">
       <div>
         <h3 className="font-bold text-white text-sm">{data.title || 'Resumen'}</h3>
@@ -25,7 +25,7 @@ export const ProgressDashboard: React.FC<WidgetActionProps> = ({ data }) => (
       </div>
       <span className="text-xl font-bold text-white">{data.progress}%</span>
     </div>
-    <ProgressBar value={data.progress} max={100} color={COLORS.nexus} />
+    <ProgressBar value={data.progress} max={100} color={COLORS.genesis} />
     <div className="grid grid-cols-2 gap-2 mt-4">
       {data.metrics?.map((m: any, i: number) => (
         <div key={i} className="bg-white/5 p-2 rounded-lg border border-white/5">
@@ -129,8 +129,8 @@ export const MealPlan: React.FC<WidgetActionProps> = ({ data }) => (
 
 // --- HABITS ---
 export const HydrationTracker: React.FC<WidgetActionProps> = ({ data, onAction }) => (
-  <GlassCard borderColor={COLORS.aqua}>
-    <AgentBadge name="AQUA" color={COLORS.aqua} icon={Droplets} />
+  <GlassCard borderColor={COLORS.wave}>
+    <AgentBadge name="WAVE" color={COLORS.wave} icon={Droplets} />
     <div className="flex justify-between items-end mb-3">
       <span className="text-[10px] font-bold text-white/40 uppercase">Hidratación</span>
       <div className="text-right">
@@ -148,7 +148,7 @@ export const HydrationTracker: React.FC<WidgetActionProps> = ({ data, onAction }
 
 export const SupplementStack: React.FC<WidgetActionProps> = ({ data, onAction }) => (
   <GlassCard borderColor={COLORS.nova}>
-    <AgentBadge name="PHARMA" color={COLORS.nova} icon={Pill} />
+    <AgentBadge name="NOVA" color={COLORS.nova} icon={Pill} />
     <h3 className="font-bold text-white mb-3">Stack Diario</h3>
     <div className="space-y-2">
       {data.items?.map((item: any, i: number) => (
@@ -169,8 +169,8 @@ export const SupplementStack: React.FC<WidgetActionProps> = ({ data, onAction })
 
 // --- PLANNING ---
 export const SeasonTimeline: React.FC<WidgetActionProps> = ({ data }) => (
-  <GlassCard borderColor={COLORS.ascend}>
-    <AgentBadge name="ASCEND" color={COLORS.ascend} icon={Calendar} />
+  <GlassCard borderColor={COLORS.tempo}>
+    <AgentBadge name="TEMPO" color={COLORS.tempo} icon={Calendar} />
     <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-white">{data.seasonName}</h3>
       <span className="text-xs text-white/40">{data.weeksCompleted}/{data.totalWeeks} semanas</span>
@@ -187,8 +187,8 @@ export const SeasonTimeline: React.FC<WidgetActionProps> = ({ data }) => (
 );
 
 export const TodayCard: React.FC<WidgetActionProps> = ({ data }) => (
-  <GlassCard borderColor={COLORS.nexus}>
-    <AgentBadge name="NEXUS" color={COLORS.nexus} icon={Sun} />
+  <GlassCard borderColor={COLORS.genesis}>
+    <AgentBadge name="GENESIS" color={COLORS.genesis} icon={Sun} />
     <h3 className="text-lg font-bold text-white mb-1">{data.greeting}</h3>
     <p className="text-[10px] text-white/40 mb-4">{data.date}</p>
     {data.mainSession && (
@@ -288,7 +288,7 @@ export const HeartRateCard: React.FC<WidgetActionProps> = ({ data }) => {
 
   return (
     <GlassCard borderColor={getZoneColor(data.zone)}>
-      <AgentBadge name="PULSE" color={getZoneColor(data.zone)} icon={Heart} />
+      <AgentBadge name="WAVE" color={getZoneColor(data.zone)} icon={Heart} />
       <div className="flex justify-between items-end mb-3">
         <div>
           <p className="text-[10px] text-white/40 uppercase">Frecuencia Cardiaca</p>

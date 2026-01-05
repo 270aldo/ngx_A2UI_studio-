@@ -1,21 +1,25 @@
 import { TemplateCategory } from './types';
 
 export const COLORS = {
+  // 13 Official NGX Agents
+  genesis: '#6D00FF',   // Central orchestrator
+  blaze: '#FF4500',     // Training & workouts
+  atlas: '#F59E0B',     // Body metrics & analysis
+  tempo: '#8B5CF6',     // Time & planning
+  wave: '#0EA5E9',      // Hydration & heart
+  sage: '#10B981',      // Nutrition strategy
+  macro: '#FF6347',     // Macro tracking
+  metabol: '#14B8A6',   // Metabolism
+  nova: '#D946EF',      // Supplements
+  spark: '#FBBF24',     // Motivation & streaks
+  stella: '#A855F7',    // Analytics & insights
+  luna: '#6366F1',      // Sleep & recovery
+  logos: '#6366F1',     // Education & science
+  // Legacy aliases (for backwards compatibility)
   nexus: '#6D00FF',
-  blaze: '#FF4500',
   aqua: '#00D4FF',
-  macro: '#FF6347',
-  sage: '#10B981',
-  tempo: '#8B5CF6',
-  spark: '#FBBF24',
-  logos: '#6366F1',
-  stella: '#A855F7',
-  atlas: '#EC4899',
   ascend: '#F59E0B',
-  luna: '#6366F1',
-  wave: '#0EA5E9',
-  metabol: '#14B8A6',
-  nova: '#D946EF',
+  // UI Colors
   bg: '#050505',
   card: 'rgba(255, 255, 255, 0.03)',
   border: 'rgba(255, 255, 255, 0.08)'
