@@ -6,6 +6,11 @@ import {
   Dumbbell, CheckCircle2, Heart, Moon, Scale, Timer, Trophy,
   History, Flame, TrendingUp, TrendingDown, Award, Plus, Minus
 } from 'lucide-react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line
+} from 'recharts';
 import { COLORS } from '../constants';
 import { GlassCard, AgentBadge, ProgressBar, ActionButton } from './UIComponents';
 import { WidgetPayload, WidgetLayout, isWidgetLayout, RenderPayload } from '../types';
@@ -2524,9 +2529,15 @@ export const EMOMClock: React.FC<WidgetActionProps> = ({ data, onAction }) => {
 
 // HRV Chart - Heart Rate Variability visualization
 export const HRVChart: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
   const readings = data.readings || [65, 72, 68, 75, 70, 73, 69];
-  const maxReading = Math.max(...readings);
-  const minReading = Math.min(...readings);
+  const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+  // Transform data for Recharts
+  const chartData = readings.map((value: number, i: number) => ({
+    day: days[i] || `D${i + 1}`,
+    hrv: value,
+  }));
 
   const getHRVColor = (score: number) => {
     if (score >= 70) return '#00FF88';
@@ -2534,43 +2545,363 @@ export const HRVChart: React.FC<WidgetActionProps> = ({ data }) => {
     return '#FF4500';
   };
 
+  const currentScore = data.score || readings[readings.length - 1] || 65;
+  const scoreColor = getHRVColor(currentScore);
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-black/90 border border-white/20 rounded-lg px-3 py-2 shadow-xl">
+          <p className="text-white text-xs font-bold">{payload[0].payload.day}</p>
+          <p className="text-sm" style={{ color: getHRVColor(payload[0].value) }}>
+            {payload[0].value} ms
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <GlassCard borderColor={COLORS.wave}>
       <AgentBadge name="WAVE" color={COLORS.wave} icon={Heart} />
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-3">
         <div>
           <h3 className="font-bold text-white">HRV</h3>
           <p className="text-[10px] text-white/40">Variabilidad Cardíaca</p>
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-bold" style={{ color: getHRVColor(data.score || 65) }}>
-            {data.score || 65}
+        <motion.div
+          className="text-right"
+          initial={prefersReducedMotion ? {} : { scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          <span className="text-2xl font-bold" style={{ color: scoreColor }}>
+            {currentScore}
           </span>
           <span className="text-xs text-white/40 ml-1">ms</span>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Mini Chart */}
-      <div className="flex items-end justify-between h-20 mb-3 px-1">
-        {readings.map((value: number, i: number) => (
-          <div key={i} className="flex flex-col items-center flex-1">
-            <div
-              className="w-full mx-0.5 rounded-t transition-all"
-              style={{
-                height: `${((value - minReading) / (maxReading - minReading)) * 100}%`,
-                minHeight: '10%',
-                background: getHRVColor(value)
-              }}
+      {/* Recharts Area Chart */}
+      <div className="h-24 -mx-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="hrvGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={scoreColor} stopOpacity={0.6} />
+                <stop offset="100%" stopColor={scoreColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 9 }}
             />
-          </div>
-        ))}
+            <YAxis
+              hide
+              domain={['dataMin - 10', 'dataMax + 10']}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="hrv"
+              stroke={scoreColor}
+              strokeWidth={2}
+              fill="url(#hrvGradient)"
+              isAnimationActive={!prefersReducedMotion}
+              animationDuration={1000}
+              animationEasing="ease-out"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
-      <div className="flex justify-between text-[9px] text-white/40">
-        <span>7 días</span>
+      <div className="flex justify-between text-[9px] text-white/40 mt-2">
+        <span>Últimos 7 días</span>
         <span className={data.trend === 'up' ? 'text-[#00FF88]' : 'text-[#FF4500]'}>
           {data.trend === 'up' ? '↑ Mejorando' : '↓ Bajando'}
         </span>
+      </div>
+    </GlassCard>
+  );
+};
+
+// --- MACRO RADAR CHART (Sprint 6) ---
+export const MacroRadar: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  // Transform macro data for radar
+  const macros = data.macros || [
+    { name: 'Proteína', actual: 140, goal: 160 },
+    { name: 'Carbos', actual: 200, goal: 250 },
+    { name: 'Grasas', actual: 65, goal: 70 },
+    { name: 'Fibra', actual: 28, goal: 35 },
+    { name: 'Agua', actual: 2.5, goal: 3 },
+  ];
+
+  // Normalize to percentage of goal
+  const radarData = macros.map((m: any) => ({
+    subject: m.name,
+    actual: Math.round((m.actual / m.goal) * 100),
+    goal: 100,
+    fullMark: 120,
+  }));
+
+  const overallProgress = Math.round(
+    macros.reduce((acc: number, m: any) => acc + (m.actual / m.goal) * 100, 0) / macros.length
+  );
+
+  const getProgressColor = (pct: number) => {
+    if (pct >= 90) return '#00FF88';
+    if (pct >= 70) return '#FFB800';
+    return '#FF4500';
+  };
+
+  return (
+    <GlassCard borderColor={COLORS.sage}>
+      <AgentBadge name="SAGE" color={COLORS.sage} icon={UtensilsCrossed} />
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <h3 className="font-bold text-white">{data.title || 'Macros del Día'}</h3>
+          <p className="text-[10px] text-white/40">vs objetivos diarios</p>
+        </div>
+        <motion.div
+          className="text-right"
+          initial={prefersReducedMotion ? {} : { scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', delay: 0.3 }}
+        >
+          <span className="text-xl font-bold" style={{ color: getProgressColor(overallProgress) }}>
+            {overallProgress}%
+          </span>
+        </motion.div>
+      </div>
+
+      {/* Radar Chart */}
+      <div className="h-44 -mx-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+            <PolarGrid stroke="rgba(255,255,255,0.15)" />
+            <PolarAngleAxis
+              dataKey="subject"
+              tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 10 }}
+            />
+            <PolarRadiusAxis
+              angle={90}
+              domain={[0, 120]}
+              tick={false}
+              axisLine={false}
+            />
+            <Radar
+              name="Objetivo"
+              dataKey="goal"
+              stroke="rgba(255,255,255,0.3)"
+              fill="rgba(255,255,255,0.05)"
+              strokeDasharray="4 4"
+              isAnimationActive={!prefersReducedMotion}
+            />
+            <Radar
+              name="Actual"
+              dataKey="actual"
+              stroke={COLORS.sage}
+              strokeWidth={2}
+              fill={COLORS.sage}
+              fillOpacity={0.5}
+              isAnimationActive={!prefersReducedMotion}
+              animationDuration={1200}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Legend */}
+      <div className="flex justify-center gap-4 mt-2">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full" style={{ background: COLORS.sage }} />
+          <span className="text-[9px] text-white/60">Actual</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full border border-white/30" />
+          <span className="text-[9px] text-white/60">Objetivo</span>
+        </div>
+      </div>
+    </GlassCard>
+  );
+};
+
+// --- VOLUME SPARKLINE (Sprint 6) ---
+export const VolumeSpark: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const values = data.values || [2500, 3200, 2800, 3500, 3100, 3800, 4200];
+  const labels = data.labels || ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  const chartData = values.map((v: number, i: number) => ({
+    name: labels[i],
+    value: v,
+  }));
+
+  const currentValue = values[values.length - 1];
+  const previousValue = values[values.length - 2] || currentValue;
+  const change = Math.round(((currentValue - previousValue) / previousValue) * 100);
+  const isPositive = change >= 0;
+
+  const TrendIcon = isPositive ? TrendingUp : TrendingDown;
+  const lineColor = isPositive ? '#00FF88' : '#FF4500';
+
+  return (
+    <GlassCard borderColor={COLORS.nova}>
+      <AgentBadge name="NOVA" color={COLORS.nova} icon={Dumbbell} />
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h3 className="font-bold text-white text-sm">{data.title || 'Volumen Semanal'}</h3>
+          <p className="text-[10px] text-white/40">{data.unit || 'kg totales'}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.span
+            className="text-lg font-bold text-white"
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {currentValue.toLocaleString()}
+          </motion.span>
+          <div className={`flex items-center gap-0.5 text-[10px] ${isPositive ? 'text-[#00FF88]' : 'text-[#FF4500]'}`}>
+            <TrendIcon size={12} />
+            <span>{isPositive ? '+' : ''}{change}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sparkline */}
+      <div className="h-12">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={lineColor}
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={!prefersReducedMotion}
+              animationDuration={800}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Labels */}
+      <div className="flex justify-between px-1 mt-1">
+        {labels.map((label: string, i: number) => (
+          <span key={i} className="text-[8px] text-white/30">{label}</span>
+        ))}
+      </div>
+    </GlassCard>
+  );
+};
+
+// --- BODY HEATMAP (Sprint 6) ---
+export const BodyHeatmap: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  // Muscle groups with intensity (0-100)
+  const muscles = data.muscles || {
+    chest: 85,
+    back: 60,
+    shoulders: 75,
+    arms: 90,
+    core: 45,
+    legs: 30,
+    glutes: 25,
+  };
+
+  const muscleLabels: { [key: string]: string } = {
+    chest: 'Pecho',
+    back: 'Espalda',
+    shoulders: 'Hombros',
+    arms: 'Brazos',
+    core: 'Core',
+    legs: 'Piernas',
+    glutes: 'Glúteos',
+  };
+
+  const getIntensityColor = (intensity: number) => {
+    if (intensity >= 80) return '#FF4500'; // High - needs recovery
+    if (intensity >= 60) return '#FFB800'; // Medium
+    if (intensity >= 40) return '#00FF88'; // Good
+    return 'rgba(255,255,255,0.2)'; // Low/rest
+  };
+
+  const getIntensityLabel = (intensity: number) => {
+    if (intensity >= 80) return 'Fatigado';
+    if (intensity >= 60) return 'Trabajado';
+    if (intensity >= 40) return 'Activo';
+    return 'Descansado';
+  };
+
+  const sortedMuscles = Object.entries(muscles).sort((a, b) => (b[1] as number) - (a[1] as number));
+
+  return (
+    <GlassCard borderColor={COLORS.atlas}>
+      <AgentBadge name="ATLAS" color={COLORS.atlas} icon={User} />
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h3 className="font-bold text-white">{data.title || 'Mapa Muscular'}</h3>
+          <p className="text-[10px] text-white/40">Fatiga acumulada esta semana</p>
+        </div>
+      </div>
+
+      {/* Heatmap Grid */}
+      <div className="space-y-2">
+        {sortedMuscles.map(([muscle, intensity], i) => (
+          <motion.div
+            key={muscle}
+            className="flex items-center gap-2"
+            initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <span className="text-[10px] text-white/60 w-16 truncate">
+              {muscleLabels[muscle] || muscle}
+            </span>
+            <div className="flex-1 h-4 bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: getIntensityColor(intensity as number) }}
+                initial={prefersReducedMotion ? { width: `${intensity}%` } : { width: 0 }}
+                animate={{ width: `${intensity}%` }}
+                transition={{ duration: 0.8, delay: i * 0.05, ease: 'easeOut' }}
+              />
+            </div>
+            <span
+              className="text-[9px] w-12 text-right"
+              style={{ color: getIntensityColor(intensity as number) }}
+            >
+              {intensity}%
+            </span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex justify-between mt-3 pt-2 border-t border-white/10">
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-[#FF4500]" />
+          <span className="text-[8px] text-white/40">Fatigado</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-[#FFB800]" />
+          <span className="text-[8px] text-white/40">Trabajado</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-[#00FF88]" />
+          <span className="text-[8px] text-white/40">Activo</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-white/20" />
+          <span className="text-[8px] text-white/40">Descansado</span>
+        </div>
       </div>
     </GlassCard>
   );
@@ -3332,7 +3663,11 @@ export const A2UIMediator: React.FC<A2UIMediatorProps> = ({ payload, onAction, e
     // NOVA (Strength Analytics)
     'pr-tracker': PRTracker,
     'volume-chart': VolumeChart,
-    'strength-curve': StrengthCurve
+    'strength-curve': StrengthCurve,
+    // Sprint 6 - Interactive Charts
+    'macro-radar': MacroRadar,
+    'volume-sparkline': VolumeSpark,
+    'body-heatmap': BodyHeatmap
   };
 
   const Widget = widgetMap[payload.type];

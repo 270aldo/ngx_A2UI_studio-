@@ -429,12 +429,9 @@ export const EMOMClockSchema = z.object({
 
 // === WAVE RECOVERY WIDGETS ===
 export const HRVChartSchema = z.object({
-  readings: z.array(z.object({
-    time: z.string(),
-    value: z.number()
-  })),
-  trend: TrendSchema,
-  avgScore: z.number(),
+  score: z.number().optional(),
+  readings: z.array(z.number()).optional(),
+  trend: TrendSchema.optional(),
   recommendation: z.string().optional()
 });
 
@@ -562,6 +559,28 @@ export const StrengthCurveSchema = z.object({
   weakPoints: z.array(z.string()).optional()
 });
 
+// === SPRINT 6 - INTERACTIVE CHARTS ===
+export const MacroRadarSchema = z.object({
+  title: z.string().optional(),
+  macros: z.array(z.object({
+    name: z.string(),
+    actual: z.number(),
+    goal: z.number()
+  })).optional()
+});
+
+export const VolumeSparkSchema = z.object({
+  title: z.string().optional(),
+  unit: z.string().optional(),
+  values: z.array(z.number()).optional(),
+  labels: z.array(z.string()).optional()
+});
+
+export const BodyHeatmapSchema = z.object({
+  title: z.string().optional(),
+  muscles: z.record(z.number().min(0).max(100)).optional()
+});
+
 // === SCHEMA MAP ===
 export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // Dashboard
@@ -639,7 +658,11 @@ export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // NOVA Strength
   'pr-tracker': PRTrackerSchema,
   'volume-chart': VolumeChartSchema,
-  'strength-curve': StrengthCurveSchema
+  'strength-curve': StrengthCurveSchema,
+  // Sprint 6 - Interactive Charts
+  'macro-radar': MacroRadarSchema,
+  'volume-sparkline': VolumeSparkSchema,
+  'body-heatmap': BodyHeatmapSchema
 };
 
 export type WidgetType = keyof typeof widgetSchemaMap;
