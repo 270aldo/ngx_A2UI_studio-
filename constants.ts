@@ -43,7 +43,7 @@ Para MULTIPLES WIDGETS, usa un layout:
   "widgets": [ { widget1 }, { widget2 } ]
 }
 
-CATALOGO COMPLETO DE WIDGETS (42 tipos):
+CATALOGO COMPLETO DE WIDGETS (57 tipos):
 
 === DASHBOARD (GENESIS) ===
 1. 'progress-dashboard': { title, subtitle, progress, metrics: [{label, value, trend: 'up'|'down'}] }
@@ -110,6 +110,31 @@ CATALOGO COMPLETO DE WIDGETS (42 tipos):
 
 === RECOVERY (LUNA) ===
 42. 'wind-down': { bedtimeGoal, currentTime, activities: [{name, duration, completed}], sleepScore }
+
+=== ENTRENAMIENTO AVANZADO (BLAZE) ===
+43. 'superset-card': { name, restBetween, exercises: [{name, sets, reps, load}], notes }
+44. 'amrap-timer': { duration, exercises: [{name, reps}], currentRound, totalRounds, isRunning }
+45. 'emom-clock': { totalMinutes, exercises: [{name, reps}], currentMinute, isRunning }
+
+=== RECUPERACION (WAVE) ===
+46. 'hrv-chart': { readings: [{time, value}], trend: 'up'|'down'|'stable', avgScore, recommendation }
+47. 'recovery-score': { overall, factors: {sleep, hrv, soreness, stress}, recommendation }
+48. 'stress-meter': { level: 1-10, sources: [{name, impact}], recommendations: string[] }
+
+=== METABOLISMO AVANZADO (METABOL) ===
+49. 'fasting-timer': { startTime, targetHours, currentPhase: 'fed'|'early'|'ketosis'|'deep', benefits: string[] }
+50. 'ketone-tracker': { reading, trend: 'rising'|'stable'|'falling', zone: 'none'|'light'|'optimal'|'deep', history: [{date, value}] }
+51. 'tdee-calculator': { bmr, activityLevel: 'sedentary'|'light'|'moderate'|'active'|'extreme', result, macroSplit: {protein, carbs, fat} }
+
+=== ANALISIS CORPORAL (ATLAS) ===
+52. 'body-scan-3d': { measurements: {chest, waist, hips, arms, thighs}, highlights: [{area, change, trend}], lastScan }
+53. 'posture-check': { overallScore, issues: [{area, severity, description}], exercises: [{name, benefit}] }
+54. 'flexibility-score': { overall, byArea: {shoulders, hips, hamstrings, spine}, recommendations: string[] }
+
+=== FUERZA ANALITICA (NOVA) ===
+55. 'pr-tracker': { exercise, currentPR: {weight, date}, history: [{weight, date}], projection }
+56. 'volume-chart': { weeklyData: [{week, volume}], trend: 'up'|'down'|'stable', totalVolume, recommendation }
+57. 'strength-curve': { exercise, data: [{reps, weight}], estimatedMax, weakPoints: string[] }
 
 REGLAS:
 - Se creativo con los datos. Si piden "Rutina Brutal", pon ejercicios dificiles y notas motivadoras intensas.
@@ -185,5 +210,30 @@ export const TEMPLATE_LIBRARY: TemplateCategory = {
   ],
   "Recovery": [
     { name: "Rutina Wind Down", type: "wind-down", props: { bedtimeGoal: "22:30", currentTime: "21:45", activities: [{ name: "Apagar pantallas", duration: "30 min antes", completed: true }, { name: "Stretching suave", duration: "10 min", completed: false }, { name: "Respiracion 4-7-8", duration: "5 min", completed: false }], sleepScore: 72 } }
+  ],
+  "BLAZE Avanzado": [
+    { name: "Superset Pecho-Espalda", type: "superset-card", props: { name: "Push-Pull Superset", restBetween: 60, exercises: [{ name: "Press Banca", sets: 4, reps: "10", load: "70kg" }, { name: "Remo con Barra", sets: 4, reps: "10", load: "60kg" }], notes: "Minimo descanso entre ejercicios del superset" } },
+    { name: "AMRAP 15min", type: "amrap-timer", props: { duration: 900, exercises: [{ name: "Burpees", reps: 10 }, { name: "Box Jumps", reps: 15 }, { name: "KB Swings", reps: 20 }], currentRound: 3, totalRounds: 0, isRunning: false } },
+    { name: "EMOM 20min", type: "emom-clock", props: { totalMinutes: 20, exercises: [{ name: "Clean & Press", reps: 5 }, { name: "Front Squat", reps: 8 }], currentMinute: 7, isRunning: false } }
+  ],
+  "WAVE Recuperacion": [
+    { name: "HRV Semanal", type: "hrv-chart", props: { readings: [{ time: "Lun", value: 65 }, { time: "Mar", value: 72 }, { time: "Mie", value: 68 }, { time: "Jue", value: 75 }, { time: "Vie", value: 70 }], trend: "up", avgScore: 70, recommendation: "Buena tendencia, mantén el descanso" } },
+    { name: "Score Recuperacion", type: "recovery-score", props: { overall: 78, factors: { sleep: 85, hrv: 72, soreness: 65, stress: 80 }, recommendation: "Optimo para entrenamiento moderado" } },
+    { name: "Nivel de Estres", type: "stress-meter", props: { level: 4, sources: [{ name: "Trabajo", impact: "alto" }, { name: "Sueno", impact: "bajo" }], recommendations: ["Respiracion profunda 5min", "Caminata al aire libre", "Reducir cafeina despues de 2pm"] } }
+  ],
+  "METABOL Avanzado": [
+    { name: "Timer Ayuno", type: "fasting-timer", props: { startTime: "20:00", targetHours: 16, currentPhase: "ketosis", benefits: ["Autofagia activa", "Sensibilidad insulina mejorada", "Quema de grasa optimizada"] } },
+    { name: "Cetonas", type: "ketone-tracker", props: { reading: 1.8, trend: "rising", zone: "optimal", history: [{ date: "Lun", value: 0.5 }, { date: "Mar", value: 1.2 }, { date: "Mie", value: 1.8 }] } },
+    { name: "Calculadora TDEE", type: "tdee-calculator", props: { bmr: 1850, activityLevel: "active", result: 2775, macroSplit: { protein: 185, carbs: 277, fat: 92 } } }
+  ],
+  "ATLAS Corporal": [
+    { name: "Escaneo 3D", type: "body-scan-3d", props: { measurements: { chest: 102, waist: 82, hips: 98, arms: 38, thighs: 58 }, highlights: [{ area: "Cintura", change: -2, trend: "down" }, { area: "Pecho", change: 1, trend: "up" }], lastScan: "Hace 7 dias" } },
+    { name: "Chequeo Postura", type: "posture-check", props: { overallScore: 72, issues: [{ area: "Hombros", severity: 2, description: "Rotacion anterior leve" }, { area: "Cadera", severity: 1, description: "Inclinacion pelvica anterior" }], exercises: [{ name: "Face Pulls", benefit: "Corrige rotacion de hombros" }, { name: "Dead Bug", benefit: "Fortalece core y postura" }] } },
+    { name: "Flexibilidad", type: "flexibility-score", props: { overall: 65, byArea: { shoulders: 70, hips: 55, hamstrings: 60, spine: 75 }, recommendations: ["Stretching de caderas 10min/dia", "Yoga 2x/semana para isquios"] } }
+  ],
+  "NOVA Fuerza": [
+    { name: "PR Sentadilla", type: "pr-tracker", props: { exercise: "Sentadilla", currentPR: { weight: "140kg", date: "15 Dic" }, history: [{ weight: "120kg", date: "Oct" }, { weight: "130kg", date: "Nov" }, { weight: "140kg", date: "Dic" }], projection: "145kg en 4 semanas" } },
+    { name: "Volumen Semanal", type: "volume-chart", props: { weeklyData: [{ week: "S1", volume: 45000 }, { week: "S2", volume: 48000 }, { week: "S3", volume: 52000 }, { week: "S4", volume: 55000 }], trend: "up", totalVolume: 200000, recommendation: "Progresion saludable, considera deload proxima semana" } },
+    { name: "Curva Fuerza", type: "strength-curve", props: { exercise: "Press Banca", data: [{ reps: 1, weight: 100 }, { reps: 3, weight: 92 }, { reps: 5, weight: 85 }, { reps: 8, weight: 75 }, { reps: 10, weight: 70 }], estimatedMax: 100, weakPoints: ["Fuerza de arranque", "Triceps en lockout"] } }
   ]
 };

@@ -1,24 +1,63 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Layers, Box, MonitorPlay, Code, Sparkles, Send, Copy, Wand2,
-  Download, FileJson, FileCode, Globe, Save, Trash2, Clock, Zap, Brain
+  Download, FileJson, FileCode, Globe, Save, Trash2, Clock, Zap, Brain,
+  GripVertical, Target, ChevronDown, ChevronRight, Scale, Dumbbell, Trophy, Moon, Medal
 } from 'lucide-react';
 import { TEMPLATE_LIBRARY } from './constants';
 import { GeminiService, GeminiModel } from './services/geminiService';
 import { ExportService } from './services/exportService';
 import { StorageService, SavedWidget } from './services/storageService';
 import { A2UIMediator } from './components/WidgetRenderer';
+import { DeviceFrame, DeviceSelector, DeviceType } from './components/DeviceFrame';
+import { HistoryControls } from './components/HistoryControls';
+import { ValidationErrors, ValidationIndicator } from './components/ValidationErrors';
+import { useJSONHistory, useKeyboardShortcuts } from './hooks/useJSONHistory';
+import { parseAndValidate } from './schemas/layoutSchemas';
+import { GOAL_TEMPLATES, GoalCategory, GoalTemplate, templateToJSON } from './utils/templateBuilder';
 import { Message, TemplateItem, WidgetPayload } from './types';
 
 const App = () => {
   const [messages, setMessages] = useState<Message[]>([{ role: 'system', text: 'Bienvenido a NGX Studio. Conectado a Gemini 3.0. Pideme un widget o usa las plantillas.' }]);
-  const [currentJSON, setCurrentJSON] = useState<string>(JSON.stringify(TEMPLATE_LIBRARY["Entrenamiento"][0], null, 2));
+
+  // JSON History with Undo/Redo
+  const {
+    json: currentJSON,
+    setJSON: setCurrentJSON,
+    setJSONImmediate, // For templates, AI generation - saves to history immediately
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    historyLength,
+    futureLength
+  } = useJSONHistory(JSON.stringify(TEMPLATE_LIBRARY["Entrenamiento"][0], null, 2));
+
+  // Keyboard shortcuts for undo/redo
+  useKeyboardShortcuts(undo, redo, canUndo, canRedo);
+
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState<GeminiModel>('flash');
   const [savedWidgets, setSavedWidgets] = useState<SavedWidget[]>([]);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [deviceType, setDeviceType] = useState<DeviceType>('mobile');
+  const [editMode, setEditMode] = useState(false);
+  const [expandedGoals, setExpandedGoals] = useState<Record<string, boolean>>({});
+  const [showValidation, setShowValidation] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Real-time validation using Zod schemas (with error handling)
+  const validationResult = useMemo(() => {
+    if (!currentJSON.trim()) return null;
+    try {
+      return parseAndValidate(currentJSON);
+    } catch (e) {
+      // Zod validation error - return null to prevent crash
+      console.warn('Validation error:', e);
+      return null;
+    }
+  }, [currentJSON]);
 
   // Cargar historial al iniciar
   useEffect(() => {
@@ -35,7 +74,7 @@ const App = () => {
   // Handle Template Selection
   const loadTemplate = (item: TemplateItem) => {
     const json = JSON.stringify({ type: item.type, props: item.props }, null, 2);
-    setCurrentJSON(json);
+    setJSONImmediate(json); // Save to history immediately for undo support
     setMessages(prev => [...prev, { role: 'system', text: `Plantilla cargada: ${item.name}` }]);
   };
 
@@ -54,7 +93,7 @@ const App = () => {
     setIsGenerating(false);
 
     if (result) {
-      setCurrentJSON(JSON.stringify(result, null, 2));
+      setJSONImmediate(JSON.stringify(result, null, 2)); // Save to history immediately
       setMessages(prev => [...prev, {
         role: 'assistant',
         text: `Widget generado con Gemini 3.0 ${selectedModel.toUpperCase()}.`,
@@ -70,7 +109,7 @@ const App = () => {
     const result = await GeminiService.callAPI(prompt, undefined, { model: selectedModel });
     setIsGenerating(false);
     if (result) {
-      setCurrentJSON(JSON.stringify(result, null, 2));
+      setJSONImmediate(JSON.stringify(result, null, 2)); // Save to history immediately
       setMessages(prev => [...prev, { role: 'assistant', text: "He refinado el JSON actual.", thought: result.thought }]);
     }
   };
@@ -89,7 +128,7 @@ const App = () => {
 
   // Cargar widget guardado
   const handleLoadSaved = (saved: SavedWidget) => {
-    setCurrentJSON(JSON.stringify(saved.payload, null, 2));
+    setJSONImmediate(JSON.stringify(saved.payload, null, 2)); // Save to history immediately
     setMessages(prev => [...prev, { role: 'system', text: `Cargado: ${saved.name}` }]);
   };
 
@@ -133,6 +172,45 @@ const App = () => {
     } catch {
       setMessages(prev => [...prev, { role: 'system', text: 'Error: JSON invalido.' }]);
     }
+  };
+
+  // Handle widget reorder from drag and drop
+  const handleWidgetReorder = useCallback((newWidgets: WidgetPayload[]) => {
+    try {
+      const parsed = JSON.parse(currentJSON);
+      // Update the widgets array in the layout
+      if (parsed.type === 'stack' || parsed.type === 'grid') {
+        const updated = { ...parsed, widgets: newWidgets };
+        setJSONImmediate(JSON.stringify(updated, null, 2));
+        setMessages(prev => [...prev, { role: 'system', text: 'Widgets reordenados.' }]);
+      }
+    } catch {
+      // Ignore JSON parse errors
+    }
+  }, [currentJSON, setJSONImmediate]);
+
+  // Load goal template
+  const loadGoalTemplate = (template: GoalTemplate) => {
+    const json = templateToJSON(template);
+    setJSONImmediate(json);
+    setMessages(prev => [...prev, { role: 'system', text: `Template cargado: ${template.name}` }]);
+  };
+
+  // Toggle goal category expansion
+  const toggleGoalExpansion = (goalKey: string) => {
+    setExpandedGoals(prev => ({ ...prev, [goalKey]: !prev[goalKey] }));
+  };
+
+  // Get icon for goal category
+  const getGoalIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      scale: <Scale size={12} />,
+      dumbbell: <Dumbbell size={12} />,
+      trophy: <Trophy size={12} />,
+      moon: <Moon size={12} />,
+      medal: <Medal size={12} />
+    };
+    return icons[iconName] || <Target size={12} />;
   };
 
   // Parse JSON safely
@@ -184,6 +262,40 @@ const App = () => {
           </div>
         )}
 
+        {/* Goal Templates Section */}
+        <div className="p-3 border-b border-white/10">
+          <p className="text-[10px] text-white/40 uppercase mb-2 font-bold pl-2 flex items-center gap-1">
+            <Target size={10} /> Por Objetivo
+          </p>
+          {Object.entries(GOAL_TEMPLATES).map(([goalKey, category]) => (
+            <div key={goalKey} className="mb-1">
+              <button
+                onClick={() => toggleGoalExpansion(goalKey)}
+                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs hover:bg-white/5 transition-colors"
+                style={{ color: category.color }}
+              >
+                {expandedGoals[goalKey] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                {getGoalIcon(category.icon)}
+                <span className="font-medium">{category.name}</span>
+              </button>
+              {expandedGoals[goalKey] && (
+                <div className="ml-4 mt-1 space-y-0.5">
+                  {category.templates.map((template, i) => (
+                    <button
+                      key={i}
+                      onClick={() => loadGoalTemplate(template)}
+                      className="w-full text-left px-2 py-1.5 rounded-lg text-[11px] text-white/60 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                    >
+                      <span>{template.preview}</span>
+                      <span className="truncate">{template.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* Templates List */}
         <div className="flex-1 overflow-y-auto p-3 no-scrollbar">
           <p className="text-[10px] text-white/40 uppercase mb-2 font-bold pl-2">Plantillas</p>
@@ -228,7 +340,26 @@ const App = () => {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* Device Selector */}
+            <DeviceSelector currentDevice={deviceType} onDeviceChange={setDeviceType} />
+
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                editMode
+                  ? 'bg-[#FFB800] text-black'
+                  : 'text-white/50 hover:text-white hover:bg-white/5'
+              }`}
+              title="Toggle Edit Mode (Drag & Drop)"
+            >
+              <GripVertical size={14} />
+              <span className="hidden sm:inline">{editMode ? 'Editing' : 'Edit'}</span>
+            </button>
+
+            <div className="w-px h-6 bg-white/10" />
+
             {/* Save Button */}
             <button onClick={handleSaveWidget} className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-[#00FF88]" title="Guardar Widget">
               <Save size={16} />
@@ -302,13 +433,39 @@ const App = () => {
             {/* JSON Editor (Bottom Half) */}
             <div className="h-1/3 border-t border-white/10 bg-[#080808] flex flex-col">
               <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center">
-                <span className="text-[10px] font-bold text-white/40 uppercase">Live JSON Editor</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-white/40 uppercase">Live JSON Editor</span>
+                  {/* Validation Indicator */}
+                  <ValidationIndicator
+                    result={validationResult?.validation || null}
+                    parseError={validationResult?.parseError || null}
+                  />
+                  {/* Undo/Redo Controls */}
+                  <HistoryControls
+                    onUndo={undo}
+                    onRedo={redo}
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    historyLength={historyLength}
+                    futureLength={futureLength}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button onClick={handleRefine} className="text-[10px] text-[#A855F7] hover:text-white flex items-center gap-1 border border-[#A855F7]/30 px-2 py-1 rounded hover:bg-[#A855F7]/10"><Wand2 size={10} /> Mejorar con IA</button>
                   <button onClick={() => navigator.clipboard.writeText(currentJSON)} className="text-[10px] text-[#6D00FF] hover:text-white flex items-center gap-1"><Copy size={10} /> Copiar</button>
                 </div>
               </div>
-              <textarea 
+              {/* Validation Errors Panel */}
+              {showValidation && (validationResult?.parseError || (validationResult?.validation && (!validationResult.validation.valid || validationResult.validation.warnings.length > 0))) && (
+                <div className="px-4 pt-2 max-h-32 overflow-y-auto no-scrollbar">
+                  <ValidationErrors
+                    result={validationResult?.validation || null}
+                    parseError={validationResult?.parseError || null}
+                    isCollapsed={false}
+                  />
+                </div>
+              )}
+              <textarea
                 value={currentJSON}
                 onChange={(e) => setCurrentJSON(e.target.value)}
                 className="flex-1 w-full bg-transparent text-[#00FF88] font-mono text-xs p-4 outline-none resize-none no-scrollbar"
@@ -318,20 +475,30 @@ const App = () => {
           </div>
 
           {/* RIGHT: LIVE PREVIEW */}
-          <div className="w-1/2 bg-[#000] relative flex items-center justify-center p-8">
+          <div className="w-1/2 bg-[#000] relative flex items-center justify-center p-8 overflow-hidden">
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
-            
-            {/* Phone Frame */}
-            <div className="w-[375px] h-[700px] bg-[#0A0A0A] rounded-[3rem] border-[8px] border-[#1a1a1a] shadow-2xl overflow-hidden relative flex flex-col">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 h-7 w-28 bg-[#000] rounded-b-2xl z-20" />
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pt-12">
-                {parsedWidget ? (
-                  <A2UIMediator payload={parsedWidget} onAction={(id, val) => console.log(`Action: ${id}`, val)} />
-                ) : (
-                  <div className="text-center text-white/20 text-xs mt-20">JSON Inválido o Vacío</div>
-                )}
+
+            {/* Edit Mode Indicator */}
+            {editMode && (
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-2 bg-[#FFB800]/20 text-[#FFB800] px-3 py-1.5 rounded-full text-[10px] font-bold uppercase">
+                <span className="w-2 h-2 bg-[#FFB800] rounded-full animate-pulse" />
+                Modo Edición
               </div>
-            </div>
+            )}
+
+            {/* Responsive Device Frame */}
+            <DeviceFrame device={deviceType}>
+              {parsedWidget ? (
+                <A2UIMediator
+                  payload={parsedWidget}
+                  onAction={(id, val) => console.log(`Action: ${id}`, val)}
+                  editMode={editMode}
+                  onReorder={handleWidgetReorder}
+                />
+              ) : (
+                <div className="text-center text-white/20 text-xs mt-20">JSON Inválido o Vacío</div>
+              )}
+            </DeviceFrame>
           </div>
 
         </div>

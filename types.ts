@@ -1,5 +1,13 @@
+// Widget display variants
+export type WidgetVariant = 'compact' | 'detailed' | 'minimal';
+
+// Widget color themes
+export type WidgetTheme = 'dark' | 'light' | 'genesis' | 'blaze' | 'wave' | 'nova' | 'atlas';
+
 export interface WidgetProps {
   [key: string]: any;
+  variant?: WidgetVariant;
+  theme?: WidgetTheme;
 }
 
 export interface WidgetPayload {
