@@ -2907,6 +2907,412 @@ export const BodyHeatmap: React.FC<WidgetActionProps> = ({ data }) => {
   );
 };
 
+// === SPRINT 7 - GAMIFICATION WIDGETS ===
+
+// XP Bar - Experience and level progression
+export const XPBar: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  const currentXP = data.currentXP || 2450;
+  const levelXP = data.levelXP || 3000;
+  const level = data.level || 12;
+  const title = data.title || 'Guerrero';
+  const nextReward = data.nextReward || 'Badge: Iron Will';
+
+  const progress = Math.round((currentXP / levelXP) * 100);
+  const xpNeeded = levelXP - currentXP;
+
+  // Level titles based on level number
+  const getLevelColor = (lvl: number) => {
+    if (lvl >= 50) return '#FFD700'; // Gold - Legendary
+    if (lvl >= 30) return '#A855F7'; // Purple - Epic
+    if (lvl >= 15) return '#3B82F6'; // Blue - Rare
+    if (lvl >= 5) return '#22C55E';  // Green - Common
+    return '#9CA3AF'; // Gray - Novice
+  };
+
+  return (
+    <GlassCard borderColor={COLORS.spark}>
+      <AgentBadge name="SPARK" color={COLORS.spark} icon={Zap} />
+
+      {/* Level Badge */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <motion.div
+            className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
+            style={{
+              background: `linear-gradient(135deg, ${getLevelColor(level)}40, ${getLevelColor(level)}20)`,
+              border: `2px solid ${getLevelColor(level)}`,
+              color: getLevelColor(level)
+            }}
+            initial={prefersReducedMotion ? {} : { scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200 }}
+          >
+            {level}
+          </motion.div>
+          <div>
+            <h3 className="font-bold text-white">{title}</h3>
+            <p className="text-[10px] text-white/40">Nivel {level}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <motion.span
+            className="text-lg font-bold text-white"
+            initial={prefersReducedMotion ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            {currentXP.toLocaleString()}
+          </motion.span>
+          <span className="text-xs text-white/40"> / {levelXP.toLocaleString()} XP</span>
+        </div>
+      </div>
+
+      {/* XP Progress Bar */}
+      <div className="relative h-4 bg-white/10 rounded-full overflow-hidden mb-2">
+        <motion.div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            background: `linear-gradient(90deg, ${getLevelColor(level)}, ${getLevelColor(level)}CC)`,
+          }}
+          initial={prefersReducedMotion ? { width: `${progress}%` } : { width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[10px] font-bold text-white drop-shadow">{progress}%</span>
+        </div>
+      </div>
+
+      {/* Next Reward */}
+      <div className="flex items-center justify-between text-[10px]">
+        <span className="text-white/40">{xpNeeded.toLocaleString()} XP para nivel {level + 1}</span>
+        <div className="flex items-center gap-1 text-[#FFD700]">
+          <Trophy size={12} />
+          <span>{nextReward}</span>
+        </div>
+      </div>
+    </GlassCard>
+  );
+};
+
+// Daily Quests - Daily missions with animated checkmarks
+export const DailyQuests: React.FC<WidgetActionProps> = ({ data, onAction }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  const quests = data.quests || [
+    { id: 1, title: 'Completa un entrenamiento', xp: 100, completed: true },
+    { id: 2, title: 'Registra 3 comidas', xp: 50, completed: true },
+    { id: 3, title: 'Bebe 2L de agua', xp: 30, completed: false, progress: 1.5, goal: 2 },
+  ];
+
+  const completedCount = quests.filter((q: any) => q.completed).length;
+  const totalXP = quests.reduce((acc: number, q: any) => acc + (q.completed ? q.xp : 0), 0);
+  const bonusXP = completedCount === quests.length ? 50 : 0;
+
+  return (
+    <GlassCard borderColor={COLORS.spark}>
+      <AgentBadge name="SPARK" color={COLORS.spark} icon={Zap} />
+
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h3 className="font-bold text-white">Misiones Diarias</h3>
+          <p className="text-[10px] text-white/40">{completedCount}/{quests.length} completadas</p>
+        </div>
+        <div className="text-right">
+          <span className="text-lg font-bold text-[#FFD700]">+{totalXP + bonusXP}</span>
+          <span className="text-[10px] text-white/40 ml-1">XP</span>
+        </div>
+      </div>
+
+      {/* Quest List */}
+      <div className="space-y-2 mb-3">
+        {quests.map((quest: any, i: number) => (
+          <motion.div
+            key={quest.id}
+            className={`flex items-center gap-3 p-2 rounded-lg ${
+              quest.completed ? 'bg-[#00FF88]/10' : 'bg-white/5'
+            }`}
+            initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            {/* Checkbox */}
+            <motion.div
+              className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                quest.completed
+                  ? 'bg-[#00FF88] text-black'
+                  : 'border-2 border-white/30'
+              }`}
+              initial={prefersReducedMotion ? {} : { scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: i * 0.1 + 0.2, type: 'spring' }}
+            >
+              {quest.completed && <CheckCircle2 size={14} />}
+            </motion.div>
+
+            {/* Quest Info */}
+            <div className="flex-1">
+              <p className={`text-xs ${quest.completed ? 'text-white/60 line-through' : 'text-white'}`}>
+                {quest.title}
+              </p>
+              {quest.progress !== undefined && !quest.completed && (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#FFB800] rounded-full"
+                      style={{ width: `${(quest.progress / quest.goal) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-white/40">{quest.progress}/{quest.goal}</span>
+                </div>
+              )}
+            </div>
+
+            {/* XP Reward */}
+            <span className={`text-[10px] font-bold ${
+              quest.completed ? 'text-[#00FF88]' : 'text-[#FFD700]'
+            }`}>
+              +{quest.xp} XP
+            </span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Bonus for completing all */}
+      {completedCount === quests.length ? (
+        <motion.div
+          className="flex items-center justify-center gap-2 p-2 rounded-lg bg-[#FFD700]/20 border border-[#FFD700]/30"
+          initial={prefersReducedMotion ? {} : { scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+        >
+          <Trophy size={16} className="text-[#FFD700]" />
+          <span className="text-xs font-bold text-[#FFD700]">¡Bonus completado! +{bonusXP} XP</span>
+        </motion.div>
+      ) : (
+        <div className="text-center text-[10px] text-white/40">
+          Completa todas para bonus de +50 XP
+        </div>
+      )}
+    </GlassCard>
+  );
+};
+
+// Badge Showcase - Grid of badges with lock/unlock states
+export const BadgeShowcase: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  const badges = data.badges || [
+    { id: 1, name: 'Primera Semana', icon: '🔥', unlocked: true, rarity: 'common' },
+    { id: 2, name: 'Iron Will', icon: '💪', unlocked: true, rarity: 'rare' },
+    { id: 3, name: 'Early Bird', icon: '🌅', unlocked: true, rarity: 'common' },
+    { id: 4, name: 'Consistencia', icon: '📈', unlocked: false, rarity: 'epic', hint: 'Entrena 30 días seguidos' },
+    { id: 5, name: 'Titan', icon: '⚡', unlocked: false, rarity: 'legendary', hint: 'Alcanza nivel 50' },
+    { id: 6, name: 'Madrugador', icon: '☀️', unlocked: false, rarity: 'rare', hint: 'Entrena antes de las 7am' },
+  ];
+
+  const unlockedCount = badges.filter((b: any) => b.unlocked).length;
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'legendary': return '#FFD700';
+      case 'epic': return '#A855F7';
+      case 'rare': return '#3B82F6';
+      default: return '#9CA3AF';
+    }
+  };
+
+  const getRarityGlow = (rarity: string) => {
+    switch (rarity) {
+      case 'legendary': return '0 0 20px rgba(255,215,0,0.5)';
+      case 'epic': return '0 0 15px rgba(168,85,247,0.4)';
+      case 'rare': return '0 0 10px rgba(59,130,246,0.3)';
+      default: return 'none';
+    }
+  };
+
+  return (
+    <GlassCard borderColor={COLORS.spark}>
+      <AgentBadge name="SPARK" color={COLORS.spark} icon={Award} />
+
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h3 className="font-bold text-white">{data.title || 'Mis Badges'}</h3>
+          <p className="text-[10px] text-white/40">{unlockedCount}/{badges.length} desbloqueados</p>
+        </div>
+      </div>
+
+      {/* Badge Grid */}
+      <div className="grid grid-cols-3 gap-2">
+        {badges.map((badge: any, i: number) => (
+          <motion.div
+            key={badge.id}
+            className={`relative flex flex-col items-center p-2 rounded-lg ${
+              badge.unlocked
+                ? 'bg-white/10'
+                : 'bg-white/5 opacity-50'
+            }`}
+            style={{
+              boxShadow: badge.unlocked ? getRarityGlow(badge.rarity) : 'none',
+              border: badge.unlocked ? `1px solid ${getRarityColor(badge.rarity)}40` : '1px solid transparent'
+            }}
+            initial={prefersReducedMotion ? {} : { scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: badge.unlocked ? 1 : 0.5 }}
+            transition={{ delay: i * 0.05, type: 'spring' }}
+            whileHover={badge.unlocked ? { scale: 1.05 } : {}}
+          >
+            {/* Badge Icon */}
+            <div className="text-2xl mb-1">
+              {badge.unlocked ? badge.icon : '🔒'}
+            </div>
+
+            {/* Badge Name */}
+            <span className="text-[9px] text-center text-white/80 leading-tight">
+              {badge.unlocked ? badge.name : '???'}
+            </span>
+
+            {/* Rarity Indicator */}
+            {badge.unlocked && (
+              <div
+                className="w-1.5 h-1.5 rounded-full mt-1"
+                style={{ backgroundColor: getRarityColor(badge.rarity) }}
+              />
+            )}
+
+            {/* Hint for locked badges */}
+            {!badge.unlocked && badge.hint && (
+              <span className="text-[8px] text-white/40 text-center mt-1">
+                {badge.hint}
+              </span>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </GlassCard>
+  );
+};
+
+// Combo Multiplier - Streak multiplier with visual feedback
+export const ComboMultiplier: React.FC<WidgetActionProps> = ({ data }) => {
+  const prefersReducedMotion = useReducedMotion();
+
+  const combo = data.combo || 5;
+  const multiplier = data.multiplier || 1.5;
+  const maxCombo = data.maxCombo || 10;
+  const timeLeft = data.timeLeft || 45; // seconds to maintain combo
+
+  const comboProgress = (combo / maxCombo) * 100;
+
+  const getComboColor = (c: number) => {
+    if (c >= 8) return '#FFD700'; // Gold
+    if (c >= 5) return '#FF4500'; // Orange/Red - Fire
+    if (c >= 3) return '#FFB800'; // Yellow
+    return '#00FF88'; // Green
+  };
+
+  return (
+    <GlassCard borderColor={COLORS.blaze}>
+      <AgentBadge name="BLAZE" color={COLORS.blaze} icon={Flame} />
+
+      <div className="flex items-center justify-between">
+        {/* Combo Counter */}
+        <div className="flex items-center gap-3">
+          <motion.div
+            className="relative"
+            animate={prefersReducedMotion ? {} : {
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${getComboColor(combo)}40, ${getComboColor(combo)}10)`,
+                border: `2px solid ${getComboColor(combo)}`,
+                boxShadow: `0 0 20px ${getComboColor(combo)}40`
+              }}
+            >
+              <div className="text-center">
+                <motion.span
+                  className="text-2xl font-black"
+                  style={{ color: getComboColor(combo) }}
+                  key={combo}
+                  initial={prefersReducedMotion ? {} : { scale: 1.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                >
+                  {combo}x
+                </motion.span>
+              </div>
+            </div>
+
+            {/* Fire particles for high combos */}
+            {combo >= 5 && !prefersReducedMotion && (
+              <>
+                <motion.div
+                  className="absolute -top-1 left-1/2 text-lg"
+                  animate={{ y: [-5, -15], opacity: [1, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  🔥
+                </motion.div>
+                <motion.div
+                  className="absolute -top-1 left-1/4 text-sm"
+                  animate={{ y: [-5, -12], opacity: [1, 0] }}
+                  transition={{ duration: 0.8, repeat: Infinity, delay: 0.3 }}
+                >
+                  ✨
+                </motion.div>
+              </>
+            )}
+          </motion.div>
+
+          <div>
+            <h3 className="font-bold text-white">Combo Activo</h3>
+            <p className="text-[10px] text-white/40">Multiplicador actual</p>
+          </div>
+        </div>
+
+        {/* Multiplier Display */}
+        <div className="text-right">
+          <motion.div
+            className="text-2xl font-black"
+            style={{ color: getComboColor(combo) }}
+            key={multiplier}
+            initial={prefersReducedMotion ? {} : { scale: 1.3 }}
+            animate={{ scale: 1 }}
+          >
+            x{multiplier.toFixed(1)}
+          </motion.div>
+          <p className="text-[10px] text-white/40">bonus XP</p>
+        </div>
+      </div>
+
+      {/* Combo Progress Bar */}
+      <div className="mt-3">
+        <div className="flex justify-between text-[9px] text-white/40 mb-1">
+          <span>Progreso a max combo</span>
+          <span>{combo}/{maxCombo}</span>
+        </div>
+        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ backgroundColor: getComboColor(combo) }}
+            initial={prefersReducedMotion ? { width: `${comboProgress}%` } : { width: 0 }}
+            animate={{ width: `${comboProgress}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
+
+      {/* Time remaining */}
+      <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-white/60">
+        <Timer size={12} />
+        <span>Mantén el ritmo: {timeLeft}s restantes</span>
+      </div>
+    </GlassCard>
+  );
+};
+
 // Recovery Score - Overall recovery assessment
 export const RecoveryScore: React.FC<WidgetActionProps> = ({ data }) => {
   const score = data.score || 75;
@@ -3667,7 +4073,12 @@ export const A2UIMediator: React.FC<A2UIMediatorProps> = ({ payload, onAction, e
     // Sprint 6 - Interactive Charts
     'macro-radar': MacroRadar,
     'volume-sparkline': VolumeSpark,
-    'body-heatmap': BodyHeatmap
+    'body-heatmap': BodyHeatmap,
+    // Sprint 7 - Gamification
+    'xp-bar': XPBar,
+    'daily-quests': DailyQuests,
+    'badge-showcase': BadgeShowcase,
+    'combo-multiplier': ComboMultiplier
   };
 
   const Widget = widgetMap[payload.type];

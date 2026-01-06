@@ -581,6 +581,45 @@ export const BodyHeatmapSchema = z.object({
   muscles: z.record(z.number().min(0).max(100)).optional()
 });
 
+// === SPRINT 7 - GAMIFICATION ===
+export const XPBarSchema = z.object({
+  currentXP: z.number().min(0).optional(),
+  levelXP: z.number().min(1).optional(),
+  level: z.number().min(1).optional(),
+  title: z.string().optional(),
+  nextReward: z.string().optional()
+});
+
+export const DailyQuestsSchema = z.object({
+  quests: z.array(z.object({
+    id: z.number(),
+    title: z.string(),
+    xp: z.number(),
+    completed: z.boolean(),
+    progress: z.number().optional(),
+    goal: z.number().optional()
+  })).optional()
+});
+
+export const BadgeShowcaseSchema = z.object({
+  title: z.string().optional(),
+  badges: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    icon: z.string(),
+    unlocked: z.boolean(),
+    rarity: z.enum(['common', 'rare', 'epic', 'legendary']),
+    hint: z.string().optional()
+  })).optional()
+});
+
+export const ComboMultiplierSchema = z.object({
+  combo: z.number().min(0).optional(),
+  multiplier: z.number().min(1).optional(),
+  maxCombo: z.number().min(1).optional(),
+  timeLeft: z.number().min(0).optional()
+});
+
 // === SCHEMA MAP ===
 export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // Dashboard
@@ -662,7 +701,12 @@ export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // Sprint 6 - Interactive Charts
   'macro-radar': MacroRadarSchema,
   'volume-sparkline': VolumeSparkSchema,
-  'body-heatmap': BodyHeatmapSchema
+  'body-heatmap': BodyHeatmapSchema,
+  // Sprint 7 - Gamification
+  'xp-bar': XPBarSchema,
+  'daily-quests': DailyQuestsSchema,
+  'badge-showcase': BadgeShowcaseSchema,
+  'combo-multiplier': ComboMultiplierSchema
 };
 
 export type WidgetType = keyof typeof widgetSchemaMap;
