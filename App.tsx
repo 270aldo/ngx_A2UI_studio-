@@ -12,12 +12,16 @@ import { A2UIMediator } from './components/WidgetRenderer';
 import { DeviceFrame, DeviceSelector, DeviceType } from './components/DeviceFrame';
 import { HistoryControls } from './components/HistoryControls';
 import { ValidationErrors, ValidationIndicator } from './components/ValidationErrors';
+import { ThemePanel } from './components/ThemePanel';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useJSONHistory, useKeyboardShortcuts } from './hooks/useJSONHistory';
 import { parseAndValidate } from './schemas/layoutSchemas';
 import { GOAL_TEMPLATES, GoalCategory, GoalTemplate, templateToJSON } from './utils/templateBuilder';
 import { Message, TemplateItem, WidgetPayload } from './types';
 
-const App = () => {
+// Main App Content (uses theme context)
+const AppContent = () => {
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<Message[]>([{ role: 'system', text: 'Bienvenido a NGX Studio. Conectado a Gemini 3.0. Pideme un widget o usa las plantillas.' }]);
 
   // JSON History with Undo/Redo
@@ -218,15 +222,37 @@ const App = () => {
   try { parsedWidget = JSON.parse(currentJSON); } catch (e) {}
 
   return (
-    <div className="flex h-screen bg-[#000] text-white font-sans overflow-hidden">
-      
+    <div
+      className="flex h-screen text-white font-sans overflow-hidden transition-colors duration-300"
+      style={{
+        backgroundColor: theme.colors.background,
+        color: theme.colors.text,
+        fontSize: `${theme.fontScale}rem`
+      }}
+    >
+
       {/* SIDEBAR (Spaces & Library) */}
-      <div className="w-64 border-r border-white/10 flex flex-col bg-[#050505]">
-        <div className="p-5 border-b border-white/10 flex items-center gap-2 text-[#6D00FF]">
+      <div
+        className="w-64 border-r flex flex-col transition-colors duration-300"
+        style={{
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.surface
+        }}
+      >
+        <div
+          className="p-5 border-b flex items-center gap-2"
+          style={{
+            borderColor: theme.colors.border,
+            color: theme.colors.accent
+          }}
+        >
           <Layers size={20} />
           <h1 className="font-bold tracking-widest text-sm">NGX STUDIO</h1>
         </div>
         
+        {/* Theme Panel */}
+        <ThemePanel />
+
         {/* Spaces Nav */}
         <div className="p-3 border-b border-white/10">
           <p className="text-[10px] text-white/40 uppercase mb-2 font-bold pl-2">Espacios</p>
@@ -316,7 +342,13 @@ const App = () => {
       <div className="flex-1 flex flex-col">
         
         {/* Header */}
-        <div className="h-14 border-b border-white/10 flex justify-between items-center px-6 bg-[#050505]">
+        <div
+          className="h-14 border-b flex justify-between items-center px-6 transition-colors duration-300"
+          style={{
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surface
+          }}
+        >
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#00FF88] animate-pulse"></span>
@@ -327,13 +359,15 @@ const App = () => {
             <div className="flex bg-white/5 rounded-lg p-0.5">
               <button
                 onClick={() => setSelectedModel('flash')}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${selectedModel === 'flash' ? 'bg-[#6D00FF] text-white' : 'text-white/50 hover:text-white'}`}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${selectedModel === 'flash' ? 'text-white' : 'text-white/50 hover:text-white'}`}
+                style={selectedModel === 'flash' ? { backgroundColor: theme.colors.accent } : {}}
               >
                 <Zap size={10} /> FLASH
               </button>
               <button
                 onClick={() => setSelectedModel('pro')}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${selectedModel === 'pro' ? 'bg-[#A855F7] text-white' : 'text-white/50 hover:text-white'}`}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${selectedModel === 'pro' ? 'text-white' : 'text-white/50 hover:text-white'}`}
+                style={selectedModel === 'pro' ? { backgroundColor: theme.colors.accentHover } : {}}
               >
                 <Brain size={10} /> PRO
               </button>
@@ -396,43 +430,93 @@ const App = () => {
         <div className="flex-1 flex overflow-hidden">
           
           {/* LEFT: CHAT & EDITOR */}
-          <div className="w-1/2 flex flex-col border-r border-white/10">
+          <div
+            className="w-1/2 flex flex-col border-r transition-colors duration-300"
+            style={{ borderColor: theme.colors.border }}
+          >
             {/* Chat History */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#050505] no-scrollbar" ref={scrollRef}>
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar transition-colors duration-300"
+              ref={scrollRef}
+              style={{ backgroundColor: theme.colors.surface }}
+            >
               {messages.map((m, i) => (
                 <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-4 py-3 rounded-2xl text-sm max-w-[90%] ${m.role === 'user' ? 'bg-[#6D00FF]/20 border border-[#6D00FF]/30 text-white' : 'bg-white/5 text-white/80'}`}>
+                  <div
+                    className={`px-4 py-3 rounded-2xl text-sm max-w-[90%] ${m.role === 'user' ? 'border' : ''}`}
+                    style={m.role === 'user'
+                      ? {
+                          backgroundColor: `${theme.colors.accent}20`,
+                          borderColor: `${theme.colors.accent}30`,
+                          color: theme.colors.text
+                        }
+                      : {
+                          backgroundColor: `${theme.colors.text}08`,
+                          color: theme.colors.textMuted
+                        }
+                    }
+                  >
                     {m.text}
                   </div>
                   {m.thought && (
-                    <div className="flex items-center gap-2 mt-1 ml-2 text-[10px] text-white/30">
+                    <div className="flex items-center gap-2 mt-1 ml-2 text-[10px]" style={{ color: theme.colors.textMuted }}>
                       <Sparkles size={10} /> {m.thought}
                     </div>
                   )}
                 </div>
               ))}
-              {isGenerating && <div className="text-xs text-[#6D00FF] animate-pulse ml-4">Gemini está diseñando...</div>}
+              {isGenerating && (
+                <div className="text-xs animate-pulse ml-4" style={{ color: theme.colors.accent }}>
+                  Gemini está diseñando...
+                </div>
+              )}
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-white/10 bg-[#050505]">
+            <div
+              className="p-4 border-t transition-colors duration-300"
+              style={{
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.surface
+              }}
+            >
               <form onSubmit={handleChat} className="relative">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe el widget: 'Crea una rutina de pecho intensa'..." 
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl py-4 pl-5 pr-14 text-sm text-white focus:border-[#6D00FF] outline-none"
+                  placeholder="Describe el widget: 'Crea una rutina de pecho intensa'..."
+                  className="w-full rounded-xl py-4 pl-5 pr-14 text-sm outline-none transition-colors duration-300"
+                  style={{
+                    backgroundColor: theme.colors.surfaceHover,
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text
+                  }}
                 />
-                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#6D00FF] rounded-lg text-white hover:opacity-90">
+                <button
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-white hover:opacity-90 transition-colors"
+                  style={{ backgroundColor: theme.colors.accent }}
+                >
                   <Send size={16} />
                 </button>
               </form>
             </div>
 
             {/* JSON Editor (Bottom Half) */}
-            <div className="h-1/3 border-t border-white/10 bg-[#080808] flex flex-col">
-              <div className="px-4 py-2 border-b border-white/5 flex justify-between items-center">
+            <div
+              className="h-1/3 border-t flex flex-col transition-colors duration-300"
+              style={{
+                borderColor: theme.colors.border,
+                backgroundColor: theme.colors.background
+              }}
+            >
+              <div
+                className="px-4 py-2 border-b flex justify-between items-center"
+                style={{ borderColor: `${theme.colors.border}50` }}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] font-bold text-white/40 uppercase">Live JSON Editor</span>
                   {/* Validation Indicator */}
@@ -468,14 +552,18 @@ const App = () => {
               <textarea
                 value={currentJSON}
                 onChange={(e) => setCurrentJSON(e.target.value)}
-                className="flex-1 w-full bg-transparent text-[#00FF88] font-mono text-xs p-4 outline-none resize-none no-scrollbar"
+                className="flex-1 w-full bg-transparent font-mono text-xs p-4 outline-none resize-none no-scrollbar"
+                style={{ color: theme.colors.success }}
                 spellCheck="false"
               />
             </div>
           </div>
 
           {/* RIGHT: LIVE PREVIEW */}
-          <div className="w-1/2 bg-[#000] relative flex items-center justify-center p-8 overflow-hidden">
+          <div
+            className="w-1/2 relative flex items-center justify-center p-8 overflow-hidden transition-colors duration-300"
+            style={{ backgroundColor: theme.colors.background }}
+          >
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
 
             {/* Edit Mode Indicator */}
@@ -506,5 +594,12 @@ const App = () => {
     </div>
   );
 };
+
+// Wrap with ThemeProvider
+const App = () => (
+  <ThemeProvider>
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default App;
