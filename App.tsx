@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   Layers, Box, MonitorPlay, Code, Sparkles, Send, Copy, Wand2,
   Download, FileJson, FileCode, Globe, Save, Trash2, Clock, Zap, Brain,
-  GripVertical, Target, ChevronDown, ChevronRight, Scale, Dumbbell, Trophy, Moon, Medal
+  GripVertical, Target, ChevronDown, ChevronRight, Scale, Dumbbell, Trophy, Moon, Medal,
+  FlaskConical, Activity, Edit3, GitMerge, Loader, Users
 } from 'lucide-react';
 import { TEMPLATE_LIBRARY } from './constants';
 import { GeminiService, GeminiModel } from './services/geminiService';
@@ -18,6 +19,7 @@ import { useJSONHistory, useKeyboardShortcuts } from './hooks/useJSONHistory';
 import { parseAndValidate } from './schemas/layoutSchemas';
 import { GOAL_TEMPLATES, GoalCategory, GoalTemplate, templateToJSON } from './utils/templateBuilder';
 import { Message, TemplateItem, WidgetPayload } from './types';
+import { A2UI_LAB_DEMOS, A2UILabDemo } from './a2ui-lab/types';
 
 // Main App Content (uses theme context)
 const AppContent = () => {
@@ -49,6 +51,7 @@ const AppContent = () => {
   const [editMode, setEditMode] = useState(false);
   const [expandedGoals, setExpandedGoals] = useState<Record<string, boolean>>({});
   const [showValidation, setShowValidation] = useState(true);
+  const [expandedA2UILab, setExpandedA2UILab] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Real-time validation using Zod schemas (with error handling)
@@ -217,6 +220,26 @@ const AppContent = () => {
     return icons[iconName] || <Target size={12} />;
   };
 
+  // Get icon for A2UI Lab demo
+  const getA2UILabIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      Layers: <Layers size={12} />,
+      Activity: <Activity size={12} />,
+      Edit3: <Edit3 size={12} />,
+      GitMerge: <GitMerge size={12} />,
+      Loader: <Loader size={12} />,
+      Users: <Users size={12} />
+    };
+    return icons[iconName] || <FlaskConical size={12} />;
+  };
+
+  // Load A2UI Lab demo
+  const loadA2UILabDemo = (demo: A2UILabDemo) => {
+    const json = JSON.stringify({ type: demo.component, props: demo.defaultProps }, null, 2);
+    setJSONImmediate(json);
+    setMessages(prev => [...prev, { role: 'system', text: `A2UI Lab: ${demo.name} cargado. Capacidad: ${demo.capability}` }]);
+  };
+
   // Parse JSON safely
   let parsedWidget = null;
   try { parsedWidget = JSON.parse(currentJSON); } catch (e) {}
@@ -320,6 +343,43 @@ const AppContent = () => {
               )}
             </div>
           ))}
+        </div>
+
+        {/* A2UI Lab Section */}
+        <div className="p-3 border-b border-white/10">
+          <button
+            onClick={() => setExpandedA2UILab(!expandedA2UILab)}
+            className="w-full flex items-center gap-2 text-[10px] text-white/40 uppercase mb-2 font-bold pl-2 hover:text-white/60 transition-colors"
+          >
+            {expandedA2UILab ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            <FlaskConical size={10} className="text-[#00FF88]" />
+            <span>A2UI Lab</span>
+            <span className="ml-auto text-[8px] bg-[#00FF88]/20 text-[#00FF88] px-1.5 py-0.5 rounded-full">NEW</span>
+          </button>
+          {expandedA2UILab && (
+            <div className="space-y-1">
+              {A2UI_LAB_DEMOS.map((demo) => (
+                <button
+                  key={demo.id}
+                  onClick={() => loadA2UILabDemo(demo)}
+                  className="w-full text-left px-2 py-2 rounded-lg text-xs hover:bg-white/5 transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center"
+                      style={{ backgroundColor: `${demo.color}20` }}
+                    >
+                      <span style={{ color: demo.color }}>{getA2UILabIcon(demo.icon)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 font-medium truncate group-hover:text-white">{demo.name}</p>
+                      <p className="text-[9px] text-white/40 truncate">{demo.capability}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Templates List */}

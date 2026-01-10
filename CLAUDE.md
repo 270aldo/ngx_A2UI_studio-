@@ -67,9 +67,13 @@ ngx_A2UI_studio/
 │   ├── geminiService.ts       # Gemini 3.0 Flash/Pro API integration
 │   ├── exportService.ts       # Export widgets (JSON, React, HTML)
 │   └── storageService.ts      # localStorage persistence
-└── utils/
-    ├── validation.ts          # JSON schema validation
-    └── templateBuilder.ts     # Goal-based template generation
+├── utils/
+│   ├── validation.ts          # JSON schema validation
+│   └── templateBuilder.ts     # Goal-based template generation
+└── a2ui-lab/                  # Sprint 9: Advanced A2UI Protocol Widgets
+    ├── index.ts               # Exports
+    ├── types.ts               # A2UI Lab types and demo definitions
+    └── A2UILabWidgets.tsx     # 6 advanced widgets (Multi-Surface, Data Binding, etc.)
 ```
 
 ## Key Commands
@@ -271,6 +275,26 @@ All 69+ widgets have corresponding Zod schemas for validation:
 - Type-safe prop validation
 - Layout structure validation
 
+### A2UI Lab (Sprint 9)
+
+Located in `a2ui-lab/` - Advanced widgets demonstrating Google's A2UI protocol capabilities:
+
+| Widget | A2UI Capability | Description |
+|--------|-----------------|-------------|
+| `live-workout-session` | Multi-Surface | 3 independent surfaces: timer overlay, coach sidebar, exercise main |
+| `reactive-biometrics` | Data Binding | HR, HRV, SpO2 with real-time reactive updates via JSON Pointers |
+| `exercise-input-panel` | Two-Way Binding | Weight/Reps/RPE inputs that modify DataModel immediately |
+| `superset-builder` | Templates | Array iteration with childrenProperty for dynamic list rendering |
+| `streaming-workout-gen` | Progressive Rendering | UI components stream in as AI generates |
+| `multi-agent-dashboard` | Orchestration | BLAZE, PULSE, SPARK, SAGE agents collaborating on single surface |
+
+**A2UI Protocol Concepts Implemented:**
+- `createSurface` / `updateComponents` message simulation
+- `dataModelUpdate` with JSON Pointer paths (RFC 6901)
+- `userAction` typed events (not free-form text)
+- Progressive/incremental UI rendering
+- Multi-agent contribution to single surface
+
 ### Gemini 3.0 Integration
 
 The `GeminiService` (`services/geminiService.ts`) supports dual models:
@@ -394,6 +418,18 @@ The app has a three-panel layout:
 - Persisted preferences to localStorage
 - Applied dynamic CSS variables and inline styles
 
+#### Sprint 9: A2UI Lab (Advanced Protocol Exploration)
+- Created `a2ui-lab/` directory with advanced widgets
+- Implemented 6 sophisticated widgets demonstrating A2UI capabilities:
+  - `live-workout-session` - Multi-Surface: Timer overlay + Coach sidebar + Exercise main
+  - `reactive-biometrics` - Data Binding: HR, HRV, Calories with real-time updates
+  - `exercise-input-panel` - Two-Way Binding: Weight/Reps/RPE live editing
+  - `superset-builder` - Templates: Dynamic superset list with array iteration
+  - `streaming-workout-gen` - Progressive Rendering: UI builds as AI generates
+  - `multi-agent-dashboard` - Orchestration: BLAZE + PULSE + SPARK collaboration
+- Added "A2UI Lab" section in sidebar with demo selector
+- Integrated widgets into A2UIMediator
+
 ### Previous Updates
 - Upgraded from Gemini 2.5 to Gemini 3.0 Flash/Pro
 - Added Undo/Redo with keyboard shortcuts (Cmd+Z, Cmd+Shift+Z)
@@ -407,7 +443,8 @@ The app has a three-panel layout:
 
 ---
 
-**Total Widgets:** 69+
+**Total Widgets:** 75+
 **Total Agents:** 13
 **Theme Presets:** 5
-**Sprints Completed:** 8
+**A2UI Lab Demos:** 6
+**Sprints Completed:** 9
