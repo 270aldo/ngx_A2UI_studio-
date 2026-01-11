@@ -8,7 +8,7 @@ NGX Studio is an AI-powered interface builder that generates React widgets via n
 
 **Key Features:**
 - Natural language to UI generation with Gemini 3.0
-- 69+ fitness-focused widget types across 13 agent categories
+- 80+ fitness-focused widget types across 13 agent categories
 - Premium animations with Framer Motion and confetti effects
 - Interactive charts with Recharts (radar, sparklines, heatmaps)
 - Gamification system (XP, quests, badges, combos)
