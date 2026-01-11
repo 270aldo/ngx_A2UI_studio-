@@ -3,7 +3,7 @@ import {
   Layers, Box, MonitorPlay, Code, Sparkles, Send, Copy, Wand2,
   Download, FileJson, FileCode, Globe, Save, Trash2, Clock, Zap, Brain,
   GripVertical, Target, ChevronDown, ChevronRight, Scale, Dumbbell, Trophy, Moon, Medal,
-  FlaskConical, Activity, Edit3, GitMerge, Loader, Users
+  FlaskConical, Activity, Edit3, GitMerge, Loader, Users, Crown, Star
 } from 'lucide-react';
 import { TEMPLATE_LIBRARY } from './constants';
 import { GeminiService, GeminiModel } from './services/geminiService';
@@ -20,6 +20,7 @@ import { parseAndValidate } from './schemas/layoutSchemas';
 import { GOAL_TEMPLATES, GoalCategory, GoalTemplate, templateToJSON } from './utils/templateBuilder';
 import { Message, TemplateItem, WidgetPayload } from './types';
 import { A2UI_LAB_DEMOS, A2UILabDemo } from './a2ui-lab/types';
+import { GENESIS_X_DEMOS, GenesisXDemo } from './genesis-x';
 
 // Main App Content (uses theme context)
 const AppContent = () => {
@@ -52,6 +53,7 @@ const AppContent = () => {
   const [expandedGoals, setExpandedGoals] = useState<Record<string, boolean>>({});
   const [showValidation, setShowValidation] = useState(true);
   const [expandedA2UILab, setExpandedA2UILab] = useState(true);
+  const [expandedGenesisX, setExpandedGenesisX] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Real-time validation using Zod schemas (with error handling)
@@ -240,6 +242,26 @@ const AppContent = () => {
     setMessages(prev => [...prev, { role: 'system', text: `A2UI Lab: ${demo.name} cargado. Capacidad: ${demo.capability}` }]);
   };
 
+  // Get icon for genesis_X demo
+  const getGenesisXIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      Zap: <Zap size={12} />,
+      Dumbbell: <Dumbbell size={12} />,
+      Trophy: <Trophy size={12} />,
+      Star: <Star size={12} />,
+      Target: <Target size={12} />,
+      Crown: <Crown size={12} />
+    };
+    return icons[iconName] || <Crown size={12} />;
+  };
+
+  // Load genesis_X demo
+  const loadGenesisXDemo = (demo: GenesisXDemo) => {
+    const json = JSON.stringify({ type: demo.component, props: demo.defaultProps }, null, 2);
+    setJSONImmediate(json);
+    setMessages(prev => [...prev, { role: 'system', text: `genesis_X: ${demo.name} cargado. ${demo.description}` }]);
+  };
+
   // Parse JSON safely
   let parsedWidget = null;
   try { parsedWidget = JSON.parse(currentJSON); } catch (e) {}
@@ -256,14 +278,14 @@ const AppContent = () => {
 
       {/* SIDEBAR (Spaces & Library) */}
       <div
-        className="w-64 border-r flex flex-col transition-colors duration-300"
+        className="w-64 border-r flex flex-col transition-colors duration-300 overflow-hidden"
         style={{
           borderColor: theme.colors.border,
           backgroundColor: theme.colors.surface
         }}
       >
         <div
-          className="p-5 border-b flex items-center gap-2"
+          className="p-5 border-b flex items-center gap-2 flex-shrink-0"
           style={{
             borderColor: theme.colors.border,
             color: theme.colors.accent
@@ -272,7 +294,10 @@ const AppContent = () => {
           <Layers size={20} />
           <h1 className="font-bold tracking-widest text-sm">NGX STUDIO</h1>
         </div>
-        
+
+        {/* Scrollable Sidebar Content */}
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+
         {/* Theme Panel */}
         <ThemePanel />
 
@@ -382,8 +407,48 @@ const AppContent = () => {
           )}
         </div>
 
+        {/* genesis_X Elite Section */}
+        <div className="p-3 border-b border-white/10">
+          <button
+            onClick={() => setExpandedGenesisX(!expandedGenesisX)}
+            className="w-full flex items-center gap-2 text-[10px] text-white/40 uppercase mb-2 font-bold pl-2 hover:text-white/60 transition-colors"
+          >
+            {expandedGenesisX ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            <Crown size={10} className="text-[#6D00FF]" />
+            <span>genesis_X</span>
+            <span className="ml-auto text-[8px] bg-[#6D00FF]/20 text-[#6D00FF] px-1.5 py-0.5 rounded-full">ELITE</span>
+          </button>
+          {expandedGenesisX && (
+            <div className="space-y-1">
+              {GENESIS_X_DEMOS.map((demo) => (
+                <button
+                  key={demo.id}
+                  onClick={() => loadGenesisXDemo(demo)}
+                  className="w-full text-left px-2 py-2 rounded-lg text-xs hover:bg-white/5 transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #6D00FF20 0%, #4C00B020 100%)',
+                        border: '1px solid #6D00FF30'
+                      }}
+                    >
+                      <span style={{ color: demo.color }}>{getGenesisXIcon(demo.icon)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 font-medium truncate group-hover:text-white">{demo.name}</p>
+                      <p className="text-[9px] text-white/40 truncate">{demo.description}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Templates List */}
-        <div className="flex-1 overflow-y-auto p-3 no-scrollbar">
+        <div className="p-3">
           <p className="text-[10px] text-white/40 uppercase mb-2 font-bold pl-2">Plantillas</p>
           {Object.entries(TEMPLATE_LIBRARY).map(([category, items]) => (
             <div key={category} className="mb-4">
@@ -396,6 +461,8 @@ const AppContent = () => {
             </div>
           ))}
         </div>
+
+        </div>{/* End Scrollable Sidebar Content */}
       </div>
 
       {/* MAIN CONTENT (Split View) */}

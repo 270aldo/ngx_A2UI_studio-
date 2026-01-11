@@ -21,6 +21,7 @@ import { useDragReorder } from '../hooks/useDragReorder';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import confetti from 'canvas-confetti';
 import { A2UI_LAB_WIDGET_MAP } from '../a2ui-lab/A2UILabWidgets';
+import { GENESIS_X_WIDGET_MAP } from '../genesis-x';
 
 interface WidgetActionProps {
   data: any;
@@ -4081,7 +4082,8 @@ export const A2UIMediator: React.FC<A2UIMediatorProps> = ({ payload, onAction, e
     'badge-showcase': BadgeShowcase,
     'combo-multiplier': ComboMultiplier,
     // Sprint 9 - A2UI Lab (Advanced A2UI Protocol Widgets)
-    ...A2UI_LAB_WIDGET_MAP
+    ...A2UI_LAB_WIDGET_MAP,
+    ...GENESIS_X_WIDGET_MAP
   };
 
   const Widget = widgetMap[payload.type];
