@@ -620,6 +620,58 @@ export const ComboMultiplierSchema = z.object({
   timeLeft: z.number().min(0).optional()
 });
 
+// === SPRINT 10 - GENESIS_X ELITE PROTOCOL ===
+const IntensitySchema = z.enum(['low', 'medium', 'high', 'extreme']);
+
+export const HeroCardEliteSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  subtitle: z.string().min(1, 'Subtitle is required'),
+  ctaText: z.string().min(1, 'CTA text is required')
+});
+
+export const WorkoutCardEliteSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  category: z.string().min(1, 'Category is required'),
+  duration: z.number().min(1, 'Duration must be at least 1 minute'),
+  intensity: IntensitySchema,
+  exercises: z.array(z.object({
+    name: z.string().min(1),
+    sets: z.number().min(1),
+    reps: z.string().min(1)
+  })).min(1, 'At least one exercise is required')
+});
+
+export const ProgressDashboardEliteSchema = z.object({
+  weekProgress: z.number().min(0).max(100),
+  streak: z.number().min(0),
+  level: z.number().min(1),
+  levelTitle: z.string().min(1),
+  metrics: z.array(z.object({
+    label: z.string().min(1),
+    value: z.number(),
+    unit: z.string(),
+    trend: TrendSchema
+  })).min(1, 'At least one metric is required')
+});
+
+export const AchievementUnlockSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  rarity: RaritySchema,
+  xpReward: z.number().min(1, 'XP reward must be at least 1'),
+  icon: z.any().optional()
+});
+
+export const GoalCommitmentSchema = z.object({
+  goalText: z.string().min(1, 'Goal text is required'),
+  deadline: z.string().min(1, 'Deadline is required'),
+  committed: z.boolean(),
+  milestones: z.array(z.object({
+    text: z.string().min(1),
+    completed: z.boolean()
+  })).min(1, 'At least one milestone is required')
+});
+
 // === SCHEMA MAP ===
 export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // Dashboard
@@ -706,7 +758,13 @@ export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   'xp-bar': XPBarSchema,
   'daily-quests': DailyQuestsSchema,
   'badge-showcase': BadgeShowcaseSchema,
-  'combo-multiplier': ComboMultiplierSchema
+  'combo-multiplier': ComboMultiplierSchema,
+  // Sprint 10 - Genesis_X Elite Protocol
+  'hero-card-elite': HeroCardEliteSchema,
+  'workout-card-elite': WorkoutCardEliteSchema,
+  'progress-dashboard-elite': ProgressDashboardEliteSchema,
+  'achievement-unlock': AchievementUnlockSchema,
+  'goal-commitment': GoalCommitmentSchema
 };
 
 export type WidgetType = keyof typeof widgetSchemaMap;
