@@ -672,6 +672,118 @@ export const GoalCommitmentSchema = z.object({
   })).min(1, 'At least one milestone is required')
 });
 
+// === SPRINT 11 - PHANTOM_X SCHEMAS ===
+
+export const HeroCardPhantomSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  subtitle: z.string().min(1, 'Subtitle is required'),
+  ctaText: z.string().min(1, 'CTA text is required')
+});
+
+export const WorkoutCardPhantomSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  category: z.string().min(1, 'Category is required'),
+  duration: z.number().min(1, 'Duration must be at least 1 minute'),
+  intensity: IntensitySchema,
+  exercises: z.array(z.object({
+    name: z.string().min(1),
+    sets: z.number().min(1),
+    reps: z.string().min(1)
+  })).min(1, 'At least one exercise is required')
+});
+
+export const ProgressDashboardPhantomSchema = z.object({
+  weekProgress: z.number().min(0).max(100),
+  streak: z.number().min(0),
+  level: z.number().min(1),
+  levelTitle: z.string().min(1),
+  metrics: z.array(z.object({
+    label: z.string().min(1),
+    value: z.number(),
+    unit: z.string(),
+    trend: TrendSchema
+  })).min(1, 'At least one metric is required')
+});
+
+export const AchievementPhantomSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  rarity: RaritySchema,
+  xpReward: z.number().min(1, 'XP reward must be at least 1'),
+  icon: z.any().optional()
+});
+
+export const GoalCommitmentPhantomSchema = z.object({
+  goalText: z.string().min(1, 'Goal text is required'),
+  deadline: z.string().min(1, 'Deadline is required'),
+  committed: z.boolean(),
+  milestones: z.array(z.object({
+    text: z.string().min(1),
+    completed: z.boolean()
+  })).min(1, 'At least one milestone is required')
+});
+
+export const StatsGridPhantomSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  stats: z.array(z.object({
+    label: z.string().min(1),
+    value: z.number(),
+    unit: z.string(),
+    trend: TrendSchema,
+    change: z.number(),
+    sparkline: z.array(z.number()).min(2, 'At least 2 data points required')
+  })).min(1, 'At least one stat is required'),
+  columns: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional()
+});
+
+export const LeaderboardPhantomSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  metric: z.string().min(1, 'Metric is required'),
+  entries: z.array(z.object({
+    rank: z.number().min(1),
+    name: z.string().min(1),
+    avatar: z.string().optional(),
+    score: z.number(),
+    badge: z.string().optional(),
+    isCurrentUser: z.boolean().optional()
+  })).min(1, 'At least one entry is required')
+});
+
+const ActivityTypeSchema = z.enum(['workout', 'achievement', 'goal', 'streak', 'social']);
+
+export const ActivityFeedPhantomSchema = z.object({
+  activities: z.array(z.object({
+    type: ActivityTypeSchema,
+    title: z.string().min(1),
+    description: z.string().min(1),
+    timestamp: z.string().min(1),
+    icon: z.any().optional()
+  })).min(1, 'At least one activity is required'),
+  maxItems: z.number().min(1).optional()
+});
+
+export const CountdownTimerPhantomSchema = z.object({
+  targetDate: z.string().min(1, 'Target date is required'),
+  eventName: z.string().min(1, 'Event name is required'),
+  description: z.string().optional()
+});
+
+export const ProfileCardPhantomSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  avatar: z.string().optional(),
+  level: z.number().min(1),
+  title: z.string().min(1, 'Title is required'),
+  xp: z.object({
+    current: z.number().min(0),
+    nextLevel: z.number().min(1)
+  }),
+  stats: z.array(z.object({
+    label: z.string().min(1),
+    value: z.string().min(1)
+  })).min(1, 'At least one stat is required'),
+  badges: z.array(z.string()).min(1, 'At least one badge is required')
+});
+
 // === SCHEMA MAP ===
 export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   // Dashboard
@@ -764,7 +876,18 @@ export const widgetSchemaMap: Record<string, z.ZodSchema> = {
   'workout-card-elite': WorkoutCardEliteSchema,
   'progress-dashboard-elite': ProgressDashboardEliteSchema,
   'achievement-unlock': AchievementUnlockSchema,
-  'goal-commitment': GoalCommitmentSchema
+  'goal-commitment': GoalCommitmentSchema,
+  // Sprint 11 - Phantom_X
+  'hero-card-phantom': HeroCardPhantomSchema,
+  'workout-card-phantom': WorkoutCardPhantomSchema,
+  'progress-dashboard-phantom': ProgressDashboardPhantomSchema,
+  'achievement-phantom': AchievementPhantomSchema,
+  'goal-commitment-phantom': GoalCommitmentPhantomSchema,
+  'stats-grid-phantom': StatsGridPhantomSchema,
+  'leaderboard-phantom': LeaderboardPhantomSchema,
+  'activity-feed-phantom': ActivityFeedPhantomSchema,
+  'countdown-timer-phantom': CountdownTimerPhantomSchema,
+  'profile-card-phantom': ProfileCardPhantomSchema
 };
 
 export type WidgetType = keyof typeof widgetSchemaMap;
