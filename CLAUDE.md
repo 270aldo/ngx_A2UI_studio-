@@ -8,7 +8,7 @@ NGX Studio is an AI-powered interface builder that generates React widgets via n
 
 **Key Features:**
 - Natural language to UI generation with Gemini 3.0
-- 80+ fitness-focused widget types across 13 agent categories
+- 90+ fitness-focused widget types across 13 agent categories
 - Premium animations with Framer Motion and confetti effects
 - Interactive charts with Recharts (radar, sparklines, heatmaps)
 - Gamification system (XP, quests, badges, combos)
@@ -74,12 +74,18 @@ ngx_A2UI_studio/
 │   ├── index.ts               # Exports
 │   ├── types.ts               # A2UI Lab types and demo definitions
 │   └── A2UILabWidgets.tsx     # 6 advanced widgets (Multi-Surface, Data Binding, etc.)
-└── genesis-x/                 # Sprint 10: Elite Protocol Premium Widgets
+├── genesis-x/                 # Sprint 10: Elite Protocol Premium Widgets
+│   ├── index.ts               # Main exports
+│   ├── types.ts               # Elite widget type definitions
+│   ├── demos.ts               # Demo data for sidebar
+│   ├── EliteCard.tsx          # Base component + design tokens (ELITE_TOKENS)
+│   └── GenesisXWidgets.tsx    # 5 Elite widgets (HeroCard, WorkoutElite, etc.)
+└── phantom-x/                 # Sprint 11: Phantom Protocol Dark Theme Widgets
     ├── index.ts               # Main exports
-    ├── types.ts               # Elite widget type definitions
+    ├── types.ts               # Phantom widget type definitions
     ├── demos.ts               # Demo data for sidebar
-    ├── EliteCard.tsx          # Base component + design tokens (ELITE_TOKENS)
-    └── GenesisXWidgets.tsx    # 5 Elite widgets (HeroCard, WorkoutElite, etc.)
+    ├── PhantomCard.tsx        # Base component + design tokens (PHANTOM_TOKENS)
+    └── PhantomXWidgets.tsx    # 10 Phantom widgets (5 adapted + 5 new)
 ```
 
 ## Key Commands
@@ -454,6 +460,31 @@ The app has a three-panel layout:
 - Fixed sidebar scroll to display all sections
 - Integrated widgets into WidgetRenderer via GENESIS_X_WIDGET_MAP
 
+#### Sprint 11: phantom_X Protocol
+- Created `phantom-x/` directory with dark theme Phantom Protocol design system
+- Implemented Phantom Protocol design tokens:
+  - Primary: `#6D00FF`, Accent: `#8B5CF6`, Background: `#0A0A0B`
+  - Surface: `#111113` (onyx cards like GlassCard)
+  - Glow effects: `rgba(109, 0, 255, 0.15/0.25/0.35)` at subtle/medium/intense levels
+  - Typography: Same bold italic as Elite Protocol
+  - Violet glow on hover for interactive elements
+- Created 10 Phantom widgets (5 adapted + 5 new):
+  - **Adapted from Elite:**
+    - `hero-card-phantom` - CTA con Glow Violeta
+    - `workout-card-phantom` - Rutina con Estética Oscura
+    - `progress-dashboard-phantom` - Dashboard Oscuro de Métricas
+    - `achievement-phantom` - Logro con Aura Mística
+    - `goal-commitment-phantom` - Compromiso con Estilo Phantom
+  - **New Widgets:**
+    - `stats-grid-phantom` - Grid de Métricas con Sparklines (Recharts)
+    - `leaderboard-phantom` - Ranking con Estilo Competitivo
+    - `activity-feed-phantom` - Feed de Actividad Reciente
+    - `countdown-timer-phantom` - Cuenta Regresiva para Eventos
+    - `profile-card-phantom` - Perfil de Usuario Completo
+- Added "phantom_X" section in sidebar with PHANTOM badge
+- Added 10 Zod schemas for validation
+- Integrated widgets into WidgetRenderer via PHANTOM_X_WIDGET_MAP
+
 ### Previous Updates
 - Upgraded from Gemini 2.5 to Gemini 3.0 Flash/Pro
 - Added Undo/Redo with keyboard shortcuts (Cmd+Z, Cmd+Shift+Z)
@@ -467,9 +498,10 @@ The app has a three-panel layout:
 
 ---
 
-**Total Widgets:** 80+
+**Total Widgets:** 90+
 **Total Agents:** 13
 **Theme Presets:** 5
 **A2UI Lab Demos:** 6
 **genesis_X Elite Widgets:** 5
-**Sprints Completed:** 10
+**phantom_X Phantom Widgets:** 10
+**Sprints Completed:** 11
