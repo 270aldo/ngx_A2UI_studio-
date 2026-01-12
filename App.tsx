@@ -3,7 +3,7 @@ import {
   Layers, Box, MonitorPlay, Code, Sparkles, Send, Copy, Wand2,
   Download, FileJson, FileCode, Globe, Save, Trash2, Clock, Zap, Brain,
   GripVertical, Target, ChevronDown, ChevronRight, Scale, Dumbbell, Trophy, Moon, Medal,
-  FlaskConical, Activity, Edit3, GitMerge, Loader, Users, Crown, Star
+  FlaskConical, Activity, Edit3, GitMerge, Loader, Users, Crown, Star, User
 } from 'lucide-react';
 import { TEMPLATE_LIBRARY } from './constants';
 import { GeminiService, GeminiModel } from './services/geminiService';
@@ -21,6 +21,7 @@ import { GOAL_TEMPLATES, GoalCategory, GoalTemplate, templateToJSON } from './ut
 import { Message, TemplateItem, WidgetPayload } from './types';
 import { A2UI_LAB_DEMOS, A2UILabDemo } from './a2ui-lab/types';
 import { GENESIS_X_DEMOS, GenesisXDemo } from './genesis-x';
+import { PHANTOM_X_DEMOS, PhantomXDemo } from './phantom-x';
 
 // Main App Content (uses theme context)
 const AppContent = () => {
@@ -54,6 +55,7 @@ const AppContent = () => {
   const [showValidation, setShowValidation] = useState(true);
   const [expandedA2UILab, setExpandedA2UILab] = useState(true);
   const [expandedGenesisX, setExpandedGenesisX] = useState(true);
+  const [expandedPhantomX, setExpandedPhantomX] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Real-time validation using Zod schemas (with error handling)
@@ -262,6 +264,30 @@ const AppContent = () => {
     setMessages(prev => [...prev, { role: 'system', text: `genesis_X: ${demo.name} cargado. ${demo.description}` }]);
   };
 
+  // Get icon for phantom_X demo
+  const getPhantomXIcon = (iconName: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      Sparkles: <Sparkles size={12} />,
+      Dumbbell: <Dumbbell size={12} />,
+      BarChart3: <Activity size={12} />,
+      Award: <Medal size={12} />,
+      Target: <Target size={12} />,
+      Grid3x3: <Box size={12} />,
+      Crown: <Crown size={12} />,
+      Activity: <Activity size={12} />,
+      Clock: <Clock size={12} />,
+      User: <User size={12} />
+    };
+    return icons[iconName] || <Sparkles size={12} />;
+  };
+
+  // Load phantom_X demo
+  const loadPhantomXDemo = (demo: PhantomXDemo) => {
+    const json = JSON.stringify({ type: demo.component, props: demo.defaultProps }, null, 2);
+    setJSONImmediate(json);
+    setMessages(prev => [...prev, { role: 'system', text: `phantom_X: ${demo.name} cargado. ${demo.description}` }]);
+  };
+
   // Parse JSON safely
   let parsedWidget = null;
   try { parsedWidget = JSON.parse(currentJSON); } catch (e) {}
@@ -435,6 +461,46 @@ const AppContent = () => {
                       }}
                     >
                       <span style={{ color: demo.color }}>{getGenesisXIcon(demo.icon)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 font-medium truncate group-hover:text-white">{demo.name}</p>
+                      <p className="text-[9px] text-white/40 truncate">{demo.description}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* phantom_X Section */}
+        <div className="p-3 border-b border-white/10">
+          <button
+            onClick={() => setExpandedPhantomX(!expandedPhantomX)}
+            className="w-full flex items-center gap-2 text-[10px] text-white/40 uppercase mb-2 font-bold pl-2 hover:text-white/60 transition-colors"
+          >
+            {expandedPhantomX ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            <Sparkles size={10} className="text-[#8B5CF6]" />
+            <span>phantom_X</span>
+            <span className="ml-auto text-[8px] bg-[#8B5CF6]/20 text-[#8B5CF6] px-1.5 py-0.5 rounded-full">PHANTOM</span>
+          </button>
+          {expandedPhantomX && (
+            <div className="space-y-1">
+              {PHANTOM_X_DEMOS.map((demo) => (
+                <button
+                  key={demo.id}
+                  onClick={() => loadPhantomXDemo(demo)}
+                  className="w-full text-left px-2 py-2 rounded-lg text-xs hover:bg-white/5 transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #8B5CF620 0%, #6D00FF20 100%)',
+                        border: '1px solid #8B5CF630'
+                      }}
+                    >
+                      <span style={{ color: demo.color }}>{getPhantomXIcon(demo.icon)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white/80 font-medium truncate group-hover:text-white">{demo.name}</p>
